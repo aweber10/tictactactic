@@ -1,38 +1,283 @@
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --background-color: #f9f9f9;
+  --text-color: #333;
+  --border-color: #ddd;
+  --active-board-color: rgba(46, 204, 113, 0.2);
+  --inactive-board-color: rgba(0, 0, 0, 0.05);
+  --x-color: #e74c3c;
+  --o-color: #3498db;
+  --winner-x-color: rgba(231, 76, 60, 0.3);
+  --winner-o-color: rgba(52, 152, 219, 0.3);
+  --winner-draw-color: rgba(149, 165, 166, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
 .App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  padding: 1rem;
+  text-align: center;
+  background-color: var(--primary-color);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.App-header h1 {
+  margin: 0;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+/* Start Screen */
+.start-screen {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.start-screen h1 {
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.start-screen h2 {
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+.rules {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.rules h3 {
+  margin-bottom: 0.5rem;
+}
+
+.rules ul {
+  padding-left: 1.5rem;
+}
+
+.rules li {
+  margin-bottom: 0.5rem;
+}
+
+.start-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.start-button:hover {
+  background-color: #2980b9;
+}
+
+/* Game Container */
+.game-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Game Info */
+.game-info {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.status {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.reset-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.reset-button:hover {
+  background-color: #2980b9;
+}
+
+/* Big Board */
+.big-board {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.big-board .board-row {
+  display: flex;
+}
+
+/* Small Board */
+.small-board {
+  width: 33.33%;
+  border: 2px solid var(--border-color);
+  background-color: var(--inactive-board-color);
+  padding: 4px;
+  transition: background-color 0.2s;
+}
+
+.small-board.active {
+  background-color: var(--active-board-color);
+}
+
+.small-board .board-row {
+  display: flex;
+  height: calc((100vw - 2rem) / 9);
+  max-height: 66px;
+}
+
+@media (min-width: 600px) {
+  .small-board .board-row {
+    height: 66px;
   }
-  to {
-    transform: rotate(360deg);
+}
+
+/* Winner display in a small board */
+.small-board.won-by-X,
+.small-board.won-by-O,
+.small-board.won-by-draw {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 2rem;
+}
+
+.small-board.won-by-X {
+  background-color: var(--winner-x-color);
+  color: var(--x-color);
+}
+
+.small-board.won-by-O {
+  background-color: var(--winner-o-color);
+  color: var(--o-color);
+}
+
+.small-board.won-by-draw {
+  background-color: var(--winner-draw-color);
+}
+
+/* Square */
+.square {
+  width: 33.33%;
+  height: 100%;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.square:focus {
+  outline: none;
+}
+
+.square:disabled {
+  cursor: not-allowed;
+}
+
+.square.active:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* X and O styling */
+.square:not(:empty) {
+  font-weight: bold;
+}
+
+.square:is([value="X"]) {
+  color: var(--x-color);
+}
+
+.square:is([value="O"]) {
+  color: var(--o-color);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .game-container {
+    padding: 0;
+  }
+  
+  .square {
+    font-size: 1.2rem;
+  }
+  
+  .small-board.won-by-X,
+  .small-board.won-by-O,
+  .small-board.won-by-draw {
+    font-size: 1.5rem;
+  }
+}
+
+/* iPhone 13 specific optimizations */
+@media only screen 
+and (min-device-width: 375px) 
+and (max-device-width: 812px) 
+and (-webkit-device-pixel-ratio: 3) {
+  .small-board .board-row {
+    height: calc((100vw - 2rem) / 9);
+  }
+  
+  .square {
+    font-size: 1rem;
   }
 }

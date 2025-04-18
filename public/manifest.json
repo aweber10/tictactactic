@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "TicTacTactic",
+  "name": "TicTacTactic - Ultimate Tic-Tac-Toe",
   "icons": [
     {
       "src": "favicon.ico",
@@ -16,10 +16,25 @@
       "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512"
+    },
+    {
+      "src": "maskable_icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#3498db",
+  "background_color": "#f9f9f9",
+  "orientation": "portrait",
+  "description": "Play Ultimate Tic-Tac-Toe, a strategic version of the classic game",
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "320x640",
+      "type": "image/png"
+    }
+  ]
 }

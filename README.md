@@ -1,70 +1,69 @@
-# Getting Started with Create React App
+# TicTacTactic - Ultimate Tic-Tac-Toe
+
+A Progressive Web App implementation of Ultimate Tic-Tac-Toe, a strategic and complex variant of the classic Tic-Tac-Toe game.
+
+## Game Rules
+
+- The board consists of a 3×3 grid of smaller Tic-Tac-Toe boards
+- The first player can place their mark in any square on any of the small boards
+- The position of a player's move within a small board determines which small board the next player must play in
+- A player wins a small board by getting three of their marks in a row (horizontally, vertically, or diagonally)
+- The player who wins three small boards in a row (horizontally, vertically, or diagonally) wins the entire game
+- If a player is sent to a board that is already won or full, they can place their mark on any open square on any board
+
+## Features
+
+- Responsive design optimized for iPhone 13 and other mobile devices
+- Progressive Web App capabilities:
+  - Offline functionality with service worker
+  - Installable on home screen
+  - App icon and splash screens
+- Clear visual indicators for:
+  - Active boards
+  - Won small boards
+  - Player turns
+  - Game status
+- Start screen with game rules
+- Play again option after game completion
+
+## Tech Stack
+
+- React with functional components and hooks
+- Progressive Web App (PWA) features
+- CSS3 with responsive design
+- Service Worker for offline capabilities
+
+## Development
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+#### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#### `npm test`
 
-### `npm test`
+Launches the test runner in interactive watch mode.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### `npm run build`
 
-### `npm run build`
+Builds the app for production to the `build` folder, optimized and ready for deployment.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Installation as PWA
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Visit the deployed application in a supported browser (Chrome, Safari, etc.)
+2. For iOS:
+   - Tap the "Share" button
+   - Select "Add to Home Screen"
+3. For Android:
+   - Tap the menu button (three dots)
+   - Select "Add to Home Screen" or "Install App"
+4. The app will now be available on your home screen with full offline functionality
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## License
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+MIT
