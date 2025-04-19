@@ -1,49 +1,48 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import SmallBoard from './SmallBoard';
 import { calculateWinner } from '../utils/gameUtils';
 
-function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updateGameState }) {
+const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updateGameState }) => {
   const [boards, setBoards] = useState(gameData.boards || Array(9).fill(null).map(() => Array(9).fill(null)));
   const [smallWinners, setSmallWinners] = useState(gameData.smallWinners || Array(9).fill(null));
   const [nextBoardIndex, setNextBoardIndex] = useState(null);
   const [ultimateWinner, setUltimateWinner] = useState(gameData.winner);
   const [winningPosition, setWinningPosition] = useState(gameData.lastWinPosition);
-  const [stateChanged, setStateChanged] = useState(false);
-  
-  // For preventing double clicks
   const [processingMove, setProcessingMove] = useState(false);
+  // Use a separate state for tracking when to update parent
+  const [shouldUpdateParent, setShouldUpdateParent] = useState(false);
 
-  // Sync state with props
+  // Sync state with props - using deep comparison to avoid unnecessary updates
   useEffect(() => {
-    setBoards(gameData.boards);
-    setSmallWinners(gameData.smallWinners);
-    setUltimateWinner(gameData.winner);
-    setWinningPosition(gameData.lastWinPosition);
-    setStateChanged(false);
-    setProcessingMove(false);
+    if (
+      JSON.stringify(gameData.boards) !== JSON.stringify(boards) ||
+      JSON.stringify(gameData.smallWinners) !== JSON.stringify(smallWinners) ||
+      gameData.winner !== ultimateWinner ||
+      gameData.lastWinPosition !== winningPosition
+    ) {
+      setBoards(gameData.boards);
+      setSmallWinners(gameData.smallWinners);
+      setUltimateWinner(gameData.winner);
+      setWinningPosition(gameData.lastWinPosition);
+      setProcessingMove(false);
+    }
   }, [gameData]);
 
-  // Save state changes to parent only when necessary
+  // Separate effect for updating parent only when needed
   useEffect(() => {
-    if (stateChanged) {
+    if (shouldUpdateParent) {
       updateGameState({
         boards,
         smallWinners,
         winner: ultimateWinner,
         lastWinPosition: winningPosition
       });
-      setStateChanged(false);
+      setShouldUpdateParent(false);
     }
-  }, [stateChanged, boards, smallWinners, ultimateWinner, winningPosition, updateGameState]);
+  }, [shouldUpdateParent, boards, smallWinners, ultimateWinner, winningPosition, updateGameState]);
 
-  // Debug log - print the current state of the board
-  useEffect(() => {
-    // For debugging only - uncomment when needed
-    // console.log(`Board state:`, boards);
-  }, [boards]);
-
-  // Handle a move in a small board
-  const handleClick = (boardIndex, squareIndex) => {
+  // Handle a move in a small board - memoize to avoid recreation on every render
+  const handleClick = useCallback((boardIndex, squareIndex) => {
     // If already processing a move or game is inactive, return
     if (processingMove || !isActive || ultimateWinner) {
       return;
@@ -70,11 +69,12 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     currentBoard[squareIndex] = xIsNext ? 'X' : 'O';
     newBoards[boardIndex] = currentBoard;
     
-    // Update all state in one go
-    setBoards(newBoards);
-    
     // Check if the small board has been won
     const smallWinner = calculateWinner(currentBoard);
+    
+    // Prepare updates with a single batch
+    setBoards(newBoards);
+    
     if (smallWinner) {
       const newSmallWinners = [...smallWinners];
       newSmallWinners[boardIndex] = smallWinner;
@@ -86,25 +86,48 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         setUltimateWinner(smallWinner);
         setWinningPosition(boardIndex);
         
-        // Notify parent component of the win
-        onGameWin(gameIndex, smallWinner, boardIndex);
+        // Notify parent component of the win - separate to avoid recursive renders
+        setTimeout(() => {
+          onGameWin(gameIndex, smallWinner, boardIndex);
+        }, 0);
       }
     }
     
     // Set the next board index based on the square that was clicked
     setNextBoardIndex(smallWinners[squareIndex] ? null : squareIndex);
     
-    // Mark that state has changed
-    setStateChanged(true);
+    // Mark to update parent after state changes are applied
+    setShouldUpdateParent(true);
     
     // Allow new moves after a brief delay
     setTimeout(() => {
       setProcessingMove(false);
     }, 300);
-  };
+  }, [
+    processingMove, isActive, ultimateWinner, nextBoardIndex, 
+    smallWinners, boards, xIsNext, gameIndex, onGameWin
+  ]);
 
-  // Render a small board
-  const renderSmallBoard = (i) => {
+  // Game status message
+  const status = useMemo(() => {
+    if (ultimateWinner) {
+      return `Ultimate Winner: ${ultimateWinner}`;
+    } else if (smallWinners.every(winner => winner !== null)) {
+      return 'Game ended in a draw';
+    } else {
+      let message = isActive 
+        ? `Next player: ${xIsNext ? 'X' : 'O'}`
+        : 'Viewing only - not your turn';
+        
+      if (isActive && nextBoardIndex !== null && !smallWinners[nextBoardIndex]) {
+        message += ` (Board ${nextBoardIndex + 1})`;
+      }
+      return message;
+    }
+  }, [ultimateWinner, smallWinners, isActive, xIsNext, nextBoardIndex]);
+
+  // Render a small board - moved outside the render method to avoid closures
+  const renderSmallBoard = useCallback((i) => {
     const isSmallBoardActive = isActive && !ultimateWinner && (nextBoardIndex === null || nextBoardIndex === i) && !smallWinners[i];
     
     return (
@@ -116,23 +139,7 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         winner={smallWinners[i]}
       />
     );
-  };
-
-  // Game status message
-  let status;
-  if (ultimateWinner) {
-    status = `Ultimate Winner: ${ultimateWinner}`;
-  } else if (smallWinners.every(winner => winner !== null)) {
-    status = 'Game ended in a draw';
-  } else {
-    status = isActive 
-      ? `Next player: ${xIsNext ? 'X' : 'O'}`
-      : 'Viewing only - not your turn';
-      
-    if (isActive && nextBoardIndex !== null && !smallWinners[nextBoardIndex]) {
-      status += ` (Board ${nextBoardIndex + 1})`;
-    }
-  }
+  }, [boards, handleClick, isActive, nextBoardIndex, smallWinners, ultimateWinner]);
 
   return (
     <div className="ultimate-game">
@@ -158,6 +165,7 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       </div>
     </div>
   );
-}
+};
 
-export default UltimateGame;
+// Wrap with memo to prevent unnecessary re-renders
+export default React.memo(UltimateGame);

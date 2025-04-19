@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import UltimateGame from './UltimateGame';
 import { calculateWinner } from '../utils/gameUtils';
 
-function MetaBoard() {
-  // Array of 9 ultimate games, each is a complete ultimate tic-tac-toe game
-  const [metaState, setMetaState] = useState({
-    // For each ultimate game, we track its state
+const MetaBoard = () => {
+  // Initial state setup
+  const initialGameState = useMemo(() => ({
     ultimateGames: Array(9).fill(null).map(() => ({
       status: 'not-started', // 'not-started', 'active', 'completed'
       winner: null, // null, 'X', 'O', 'draw'
@@ -17,8 +16,9 @@ function MetaBoard() {
     activeUltimateGameIndex: null,
     metaWinner: null,
     metaGameState: 'playing' // 'playing', 'won', 'draw'
-  });
-
+  }), []);
+  
+  const [metaState, setMetaState] = useState(initialGameState);
   const [viewingGameIndex, setViewingGameIndex] = useState(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
   
@@ -26,7 +26,7 @@ function MetaBoard() {
   const checkForWinnerRef = useRef(false);
 
   // Handle the completion of an ultimate game
-  const handleUltimateGameWin = (ultimateGameIndex, winner, winPosition) => {
+  const handleUltimateGameWin = useCallback((ultimateGameIndex, winner, winPosition) => {
     setMetaState(prevState => {
       const newState = { ...prevState };
       const ultimateGame = { ...newState.ultimateGames[ultimateGameIndex] };
@@ -67,10 +67,10 @@ function MetaBoard() {
     
     // Also set the viewing index to the next active game
     setViewingGameIndex(winPosition);
-  };
+  }, []);
 
   // Start an ultimate game
-  const startUltimateGame = (index) => {
+  const startUltimateGame = useCallback((index) => {
     // Only allow starting a new game if it's not completed and either:
     // 1. It's the active game, or
     // 2. No specific active game is set (player can choose)
@@ -102,7 +102,7 @@ function MetaBoard() {
     
     // Always set the viewing index
     setViewingGameIndex(index);
-  };
+  }, [metaState.activeUltimateGameIndex, metaState.ultimateGames]);
 
   // Check for a meta-game winner, but only when needed
   useEffect(() => {
@@ -134,53 +134,53 @@ function MetaBoard() {
   }, [metaState.ultimateGames]);
 
   // Reset the entire meta-game
-  const resetMetaGame = () => {
-    setMetaState({
-      ultimateGames: Array(9).fill(null).map(() => ({
-        status: 'not-started',
-        winner: null,
-        boards: Array(9).fill(null).map(() => Array(9).fill(null)),
-        smallWinners: Array(9).fill(null),
-        lastWinPosition: null
-      })),
-      xIsNext: true,
-      activeUltimateGameIndex: null,
-      metaWinner: null,
-      metaGameState: 'playing'
-    });
+  const resetMetaGame = useCallback(() => {
+    setMetaState(initialGameState);
     setViewingGameIndex(null);
-  };
+  }, [initialGameState]);
 
   // Return to the meta board view
-  const returnToMetaBoard = () => {
+  const returnToMetaBoard = useCallback(() => {
     setViewingGameIndex(null);
-  };
+  }, []);
 
   // Update an ultimate game's state
-  const updateUltimateGameState = (index, updatedGame) => {
+  const updateUltimateGameState = useCallback((index, updatedGame) => {
     setMetaState(prevState => {
+      // Only update if there are actual changes
+      const currentGame = prevState.ultimateGames[index];
+      if (
+        JSON.stringify(currentGame.boards) === JSON.stringify(updatedGame.boards) &&
+        JSON.stringify(currentGame.smallWinners) === JSON.stringify(updatedGame.smallWinners) &&
+        currentGame.winner === updatedGame.winner &&
+        currentGame.lastWinPosition === updatedGame.lastWinPosition
+      ) {
+        return prevState; // No changes, return previous state
+      }
+      
       const newState = { ...prevState };
+      newState.ultimateGames = [...newState.ultimateGames];
       newState.ultimateGames[index] = {
         ...newState.ultimateGames[index],
         ...updatedGame
       };
       return newState;
     });
-  };
+  }, []);
 
   // Toggle help modal
-  const toggleHelpModal = () => {
-    setShowHelpModal(!showHelpModal);
-  };
+  const toggleHelpModal = useCallback(() => {
+    setShowHelpModal(prevState => !prevState);
+  }, []);
 
   // Save game state to local storage
-  const saveGame = () => {
+  const saveGame = useCallback(() => {
     localStorage.setItem('tictactactic-hardcore-state', JSON.stringify(metaState));
     alert('Game saved successfully!');
-  };
+  }, [metaState]);
 
   // Load game state from local storage
-  const loadGame = () => {
+  const loadGame = useCallback(() => {
     const savedState = localStorage.getItem('tictactactic-hardcore-state');
     if (savedState) {
       setMetaState(JSON.parse(savedState));
@@ -189,7 +189,51 @@ function MetaBoard() {
     } else {
       alert('No saved game found!');
     }
-  };
+  }, []);
+
+  // Memoized rendering of meta cell to prevent unnecessary re-renders
+  const renderMetaCell = useCallback((index) => {
+    const game = metaState.ultimateGames[index];
+    const isActive = metaState.activeUltimateGameIndex === index;
+    const canStart = metaState.activeUltimateGameIndex === null || isActive;
+    const cellClass = `meta-cell ${game.status === 'completed' ? `won-by-${game.winner}` : ''} ${isActive ? 'active' : ''} ${game.status === 'not-started' && canStart ? 'can-start' : ''}`;
+    
+    return (
+      <div 
+        key={index}
+        className={cellClass}
+        onClick={() => startUltimateGame(index)}
+      >
+        {game.status === 'completed' ? (
+          <div className="meta-winner">{game.winner === 'draw' ? '=' : game.winner}</div>
+        ) : (
+          <div className="meta-preview">
+            Game {index + 1}
+            <div className="meta-status-indicator">
+              {game.status === 'active' ? 'Active' : 'Not Started'}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }, [metaState.ultimateGames, metaState.activeUltimateGameIndex, startUltimateGame]);
+
+  // Memoized status message
+  const status = useMemo(() => {
+    if (metaState.metaGameState === 'won') {
+      return `Meta Winner: ${metaState.metaWinner}`;
+    } else if (metaState.metaGameState === 'draw') {
+      return 'Meta Game ended in a draw';
+    } else {
+      let statusText = `Next player: ${metaState.xIsNext ? 'X' : 'O'}`;
+      if (metaState.activeUltimateGameIndex !== null) {
+        statusText += ` (Game ${metaState.activeUltimateGameIndex + 1})`;
+      } else {
+        statusText += ' (Choose any unfinished game)';
+      }
+      return statusText;
+    }
+  }, [metaState.metaGameState, metaState.metaWinner, metaState.xIsNext, metaState.activeUltimateGameIndex]);
 
   // Render meta board or an individual ultimate game
   if (viewingGameIndex !== null) {
@@ -230,21 +274,6 @@ function MetaBoard() {
     );
   }
 
-  // Meta board game status message
-  let status;
-  if (metaState.metaGameState === 'won') {
-    status = `Meta Winner: ${metaState.metaWinner}`;
-  } else if (metaState.metaGameState === 'draw') {
-    status = 'Meta Game ended in a draw';
-  } else {
-    status = `Next player: ${metaState.xIsNext ? 'X' : 'O'}`;
-    if (metaState.activeUltimateGameIndex !== null) {
-      status += ` (Game ${metaState.activeUltimateGameIndex + 1})`;
-    } else {
-      status += ' (Choose any unfinished game)';
-    }
-  }
-
   return (
     <div className="meta-game">
       <div className="meta-game-header">
@@ -260,13 +289,13 @@ function MetaBoard() {
 
       <div className="meta-board">
         <div className="board-row">
-          {[0, 1, 2].map(i => renderMetaCell(i))}
+          {[0, 1, 2].map(renderMetaCell)}
         </div>
         <div className="board-row">
-          {[3, 4, 5].map(i => renderMetaCell(i))}
+          {[3, 4, 5].map(renderMetaCell)}
         </div>
         <div className="board-row">
-          {[6, 7, 8].map(i => renderMetaCell(i))}
+          {[6, 7, 8].map(renderMetaCell)}
         </div>
       </div>
 
@@ -299,33 +328,6 @@ function MetaBoard() {
       )}
     </div>
   );
+};
 
-  // Helper function to render a meta cell (representing an ultimate game)
-  function renderMetaCell(index) {
-    const game = metaState.ultimateGames[index];
-    const isActive = metaState.activeUltimateGameIndex === index;
-    const canStart = metaState.activeUltimateGameIndex === null || isActive;
-    const cellClass = `meta-cell ${game.status === 'completed' ? `won-by-${game.winner}` : ''} ${isActive ? 'active' : ''} ${game.status === 'not-started' && canStart ? 'can-start' : ''}`;
-    
-    return (
-      <div 
-        key={index}
-        className={cellClass}
-        onClick={() => startUltimateGame(index)}
-      >
-        {game.status === 'completed' ? (
-          <div className="meta-winner">{game.winner === 'draw' ? '=' : game.winner}</div>
-        ) : (
-          <div className="meta-preview">
-            Game {index + 1}
-            <div className="meta-status-indicator">
-              {game.status === 'active' ? 'Active' : 'Not Started'}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
-
-export default MetaBoard;
+export default React.memo(MetaBoard);
