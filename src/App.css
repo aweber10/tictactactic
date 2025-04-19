@@ -11,6 +11,8 @@
   --winner-x-color: rgba(231, 76, 60, 0.3);
   --winner-o-color: rgba(52, 152, 219, 0.3);
   --winner-draw-color: rgba(149, 165, 166, 0.3);
+  --hardcore-color: #9b59b6;
+  --hardcore-light: rgba(155, 89, 182, 0.2);
 }
 
 * {
@@ -60,7 +62,7 @@ footer {
 
 /* Start Screen */
 .start-screen {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   background-color: white;
@@ -82,9 +84,44 @@ footer {
   margin-bottom: 2rem;
 }
 
+.game-mode-selection {
+  margin-bottom: 2rem;
+}
+
+.game-modes {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.game-mode {
+  flex: 1;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: var(--background-color);
+  transition: transform 0.2s;
+}
+
+.game-mode:hover {
+  transform: translateY(-5px);
+}
+
+.game-mode h4 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.game-mode p {
+  margin-bottom: 1.5rem;
+  min-height: 4em;
+}
+
 .rules {
   text-align: left;
   margin-bottom: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .rules h3 {
@@ -108,17 +145,46 @@ footer {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+  width: 100%;
 }
 
 .start-button:hover {
   background-color: #2980b9;
 }
 
+.start-button.hardcore {
+  background-color: var(--hardcore-color);
+}
+
+.start-button.hardcore:hover {
+  background-color: #8e44ad;
+}
+
 /* Game Container */
 .game-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background-color: transparent;
+  color: var(--text-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.back-button:hover {
+  color: var(--primary-color);
 }
 
 /* Game Info */
@@ -142,6 +208,7 @@ footer {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin: 0 0.5rem;
 }
 
 .reset-button:hover {
@@ -149,7 +216,7 @@ footer {
 }
 
 /* Big Board */
-.big-board {
+.big-board, .ultimate-board {
   display: flex;
   flex-direction: column;
   background-color: white;
@@ -158,7 +225,7 @@ footer {
   overflow: hidden;
 }
 
-.big-board .board-row {
+.big-board .board-row, .ultimate-board .board-row {
   display: flex;
 }
 
@@ -251,6 +318,216 @@ footer {
   color: var(--o-color);
 }
 
+/* Meta Game Styles */
+.meta-game {
+  width: 100%;
+}
+
+.meta-game-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.meta-game-header h2 {
+  color: var(--hardcore-color);
+  margin-bottom: 0.5rem;
+}
+
+.meta-status {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.meta-controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-button {
+  background-color: var(--hardcore-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.meta-button:hover {
+  background-color: #8e44ad;
+}
+
+.meta-board {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.meta-board .board-row {
+  display: flex;
+  height: auto;
+}
+
+.meta-cell {
+  flex: 1;
+  aspect-ratio: 1;
+  border: 2px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  background-color: var(--inactive-board-color);
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 1rem;
+}
+
+.meta-cell:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.meta-cell.active {
+  background-color: var(--hardcore-light);
+  border-color: var(--hardcore-color);
+}
+
+.meta-cell.can-start {
+  border: 2px dashed var(--hardcore-color);
+}
+
+.meta-cell.won-by-X {
+  background-color: var(--winner-x-color);
+  color: var(--x-color);
+  font-size: 3rem;
+}
+
+.meta-cell.won-by-O {
+  background-color: var(--winner-o-color);
+  color: var(--o-color);
+  font-size: 3rem;
+}
+
+.meta-cell.won-by-draw {
+  background-color: var(--winner-draw-color);
+  font-size: 3rem;
+}
+
+.meta-preview {
+  text-align: center;
+}
+
+.meta-status-indicator {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  color: #777;
+}
+
+.meta-game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.meta-nav-button {
+  background-color: transparent;
+  color: var(--hardcore-color);
+  border: 1px solid var(--hardcore-color);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meta-nav-button:hover {
+  background-color: var(--hardcore-light);
+}
+
+.meta-game-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: var(--hardcore-color);
+}
+
+.meta-game-status {
+  font-size: 0.9rem;
+}
+
+/* Help Modal */
+.help-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.help-modal-content {
+  width: 90%;
+  max-width: 600px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.help-modal h3 {
+  color: var(--hardcore-color);
+  margin-top: 0;
+}
+
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #777;
+}
+
+.help-content {
+  text-align: left;
+}
+
+.help-content h4 {
+  color: var(--hardcore-color);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.help-content ol, .help-content ul {
+  padding-left: 1.5rem;
+}
+
+.help-content li {
+  margin-bottom: 0.5rem;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .game-container {
@@ -265,6 +542,20 @@ footer {
   .small-board.won-by-O,
   .small-board.won-by-draw {
     font-size: 1.5rem;
+  }
+
+  .game-modes {
+    flex-direction: column;
+  }
+
+  .meta-game-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .meta-controls {
+    flex-direction: column;
+    width: 100%;
   }
 }
 
