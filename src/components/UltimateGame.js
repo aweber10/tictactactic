@@ -9,6 +9,9 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
   const [ultimateWinner, setUltimateWinner] = useState(gameData.winner);
   const [winningPosition, setWinningPosition] = useState(gameData.lastWinPosition);
   const [stateChanged, setStateChanged] = useState(false);
+  
+  // For preventing double clicks
+  const [processingMove, setProcessingMove] = useState(false);
 
   // Sync state with props
   useEffect(() => {
@@ -17,6 +20,7 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     setUltimateWinner(gameData.winner);
     setWinningPosition(gameData.lastWinPosition);
     setStateChanged(false);
+    setProcessingMove(false);
   }, [gameData]);
 
   // Save state changes to parent only when necessary
@@ -32,10 +36,16 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     }
   }, [stateChanged, boards, smallWinners, ultimateWinner, winningPosition, updateGameState]);
 
+  // Debug log - print the current state of the board
+  useEffect(() => {
+    // For debugging only - uncomment when needed
+    // console.log(`Board state:`, boards);
+  }, [boards]);
+
   // Handle a move in a small board
   const handleClick = (boardIndex, squareIndex) => {
-    // If game is not active or already has a winner, ignore clicks
-    if (!isActive || ultimateWinner) {
+    // If already processing a move or game is inactive, return
+    if (processingMove || !isActive || ultimateWinner) {
       return;
     }
 
@@ -49,6 +59,9 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       return;
     }
 
+    // Prevent multiple rapid clicks
+    setProcessingMove(true);
+
     // Create copies to update state immutably
     const newBoards = [...boards];
     const currentBoard = [...newBoards[boardIndex]];
@@ -56,6 +69,8 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     // Make the move
     currentBoard[squareIndex] = xIsNext ? 'X' : 'O';
     newBoards[boardIndex] = currentBoard;
+    
+    // Update all state in one go
     setBoards(newBoards);
     
     // Check if the small board has been won
@@ -81,6 +96,11 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     
     // Mark that state has changed
     setStateChanged(true);
+    
+    // Allow new moves after a brief delay
+    setTimeout(() => {
+      setProcessingMove(false);
+    }, 300);
   };
 
   // Render a small board

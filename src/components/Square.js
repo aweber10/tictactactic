@@ -6,7 +6,7 @@ function Square({ value, onClick, isActive }) {
       disabled={value || !isActive}
       aria-label={value ? `${value} played here` : 'Empty square'}
     >
-      {/* No need for text content as we use ::before in CSS */}
+      {value}
     </button>
   );
 }
