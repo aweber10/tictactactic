@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import SmallBoard from './SmallBoard';
 import { calculateWinner } from '../utils/gameUtils';
 
@@ -8,6 +8,7 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
   const [nextBoardIndex, setNextBoardIndex] = useState(null);
   const [ultimateWinner, setUltimateWinner] = useState(gameData.winner);
   const [winningPosition, setWinningPosition] = useState(gameData.lastWinPosition);
+  const [stateChanged, setStateChanged] = useState(false);
 
   // Sync state with props
   useEffect(() => {
@@ -15,17 +16,21 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     setSmallWinners(gameData.smallWinners);
     setUltimateWinner(gameData.winner);
     setWinningPosition(gameData.lastWinPosition);
+    setStateChanged(false);
   }, [gameData]);
 
-  // Save state changes to parent
+  // Save state changes to parent only when necessary
   useEffect(() => {
-    updateGameState({
-      boards,
-      smallWinners,
-      winner: ultimateWinner,
-      lastWinPosition: winningPosition
-    });
-  }, [boards, smallWinners, ultimateWinner, winningPosition, updateGameState]);
+    if (stateChanged) {
+      updateGameState({
+        boards,
+        smallWinners,
+        winner: ultimateWinner,
+        lastWinPosition: winningPosition
+      });
+      setStateChanged(false);
+    }
+  }, [stateChanged, boards, smallWinners, ultimateWinner, winningPosition, updateGameState]);
 
   // Handle a move in a small board
   const handleClick = (boardIndex, squareIndex) => {
@@ -73,6 +78,9 @@ function UltimateGame({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     
     // Set the next board index based on the square that was clicked
     setNextBoardIndex(smallWinners[squareIndex] ? null : squareIndex);
+    
+    // Mark that state has changed
+    setStateChanged(true);
   };
 
   // Render a small board

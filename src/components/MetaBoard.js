@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UltimateGame from './UltimateGame';
 import { calculateWinner } from '../utils/gameUtils';
 
@@ -21,44 +21,52 @@ function MetaBoard() {
 
   const [viewingGameIndex, setViewingGameIndex] = useState(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  
+  // Use a ref to track if we need to check for a meta winner
+  const checkForWinnerRef = useRef(false);
 
   // Handle the completion of an ultimate game
   const handleUltimateGameWin = (ultimateGameIndex, winner, winPosition) => {
-    const newMetaState = { ...metaState };
-    const ultimateGame = { ...newMetaState.ultimateGames[ultimateGameIndex] };
+    setMetaState(prevState => {
+      const newState = { ...prevState };
+      const ultimateGame = { ...newState.ultimateGames[ultimateGameIndex] };
+      
+      // Mark the ultimate game as completed with its winner
+      ultimateGame.status = 'completed';
+      ultimateGame.winner = winner;
+      ultimateGame.lastWinPosition = winPosition;
+      
+      newState.ultimateGames[ultimateGameIndex] = ultimateGame;
+      
+      // Determine next active ultimate game based on the win position
+      const nextUltimateGameIndex = winPosition;
+      
+      // Check if the next game is already completed
+      if (
+        nextUltimateGameIndex === null || 
+        newState.ultimateGames[nextUltimateGameIndex].status === 'completed'
+      ) {
+        // If the next game is already completed, player can choose any non-completed game
+        newState.activeUltimateGameIndex = null;
+      } else {
+        newState.activeUltimateGameIndex = nextUltimateGameIndex;
+        // Mark the game as active
+        const nextGame = { ...newState.ultimateGames[nextUltimateGameIndex] };
+        nextGame.status = 'active';
+        newState.ultimateGames[nextUltimateGameIndex] = nextGame;
+      }
+      
+      // Toggle player turn
+      newState.xIsNext = !newState.xIsNext;
+      
+      return newState;
+    });
     
-    // Mark the ultimate game as completed with its winner
-    ultimateGame.status = 'completed';
-    ultimateGame.winner = winner;
-    ultimateGame.lastWinPosition = winPosition;
-    
-    newMetaState.ultimateGames[ultimateGameIndex] = ultimateGame;
-    
-    // Determine next active ultimate game based on the win position
-    const nextUltimateGameIndex = winPosition;
-    
-    // Check if the next game is already completed
-    if (
-      nextUltimateGameIndex === null || 
-      newMetaState.ultimateGames[nextUltimateGameIndex].status === 'completed'
-    ) {
-      // If the next game is already completed, player can choose any non-completed game
-      newMetaState.activeUltimateGameIndex = null;
-    } else {
-      newMetaState.activeUltimateGameIndex = nextUltimateGameIndex;
-      // Mark the game as active
-      const nextGame = { ...newMetaState.ultimateGames[nextUltimateGameIndex] };
-      nextGame.status = 'active';
-      newMetaState.ultimateGames[nextUltimateGameIndex] = nextGame;
-    }
-    
-    // Toggle player turn
-    newMetaState.xIsNext = !newMetaState.xIsNext;
-    
-    setMetaState(newMetaState);
+    // Set flag to check for a meta winner
+    checkForWinnerRef.current = true;
     
     // Also set the viewing index to the next active game
-    setViewingGameIndex(newMetaState.activeUltimateGameIndex);
+    setViewingGameIndex(winPosition);
   };
 
   // Start an ultimate game
@@ -70,50 +78,58 @@ function MetaBoard() {
       metaState.ultimateGames[index].status !== 'completed' && 
       (metaState.activeUltimateGameIndex === index || metaState.activeUltimateGameIndex === null)
     ) {
-      const newMetaState = { ...metaState };
-      
-      // Mark previous active game as not active
-      if (metaState.activeUltimateGameIndex !== null && metaState.activeUltimateGameIndex !== index) {
-        const prevGame = { ...newMetaState.ultimateGames[metaState.activeUltimateGameIndex] };
-        if (prevGame.status !== 'completed') {
-          prevGame.status = 'not-started';
-          newMetaState.ultimateGames[metaState.activeUltimateGameIndex] = prevGame;
+      setMetaState(prevState => {
+        const newState = { ...prevState };
+        
+        // Mark previous active game as not active
+        if (prevState.activeUltimateGameIndex !== null && prevState.activeUltimateGameIndex !== index) {
+          const prevGame = { ...newState.ultimateGames[prevState.activeUltimateGameIndex] };
+          if (prevGame.status !== 'completed') {
+            prevGame.status = 'not-started';
+            newState.ultimateGames[prevState.activeUltimateGameIndex] = prevGame;
+          }
         }
-      }
-      
-      // Set the new active game
-      const game = { ...newMetaState.ultimateGames[index] };
-      game.status = 'active';
-      newMetaState.ultimateGames[index] = game;
-      newMetaState.activeUltimateGameIndex = index;
-      
-      setMetaState(newMetaState);
-      setViewingGameIndex(index);
-    } else {
-      // Allow viewing any game even if it's not active
-      setViewingGameIndex(index);
+        
+        // Set the new active game
+        const game = { ...newState.ultimateGames[index] };
+        game.status = 'active';
+        newState.ultimateGames[index] = game;
+        newState.activeUltimateGameIndex = index;
+        
+        return newState;
+      });
     }
+    
+    // Always set the viewing index
+    setViewingGameIndex(index);
   };
 
-  // Check for a meta-game winner
+  // Check for a meta-game winner, but only when needed
   useEffect(() => {
-    // Extract just the winners from each ultimate game
-    const ultimateWinners = metaState.ultimateGames.map(game => game.winner);
-    
-    // Calculate if there's a meta-winner
-    const winner = calculateWinner(ultimateWinners);
-    
-    if (winner && winner !== 'draw') {
-      // Meta-game has a winner
-      const newMetaState = { ...metaState };
-      newMetaState.metaWinner = winner;
-      newMetaState.metaGameState = 'won';
-      setMetaState(newMetaState);
-    } else if (metaState.ultimateGames.every(game => game.status === 'completed')) {
-      // All ultimate games are completed but no winner
-      const newMetaState = { ...metaState };
-      newMetaState.metaGameState = 'draw';
-      setMetaState(newMetaState);
+    if (checkForWinnerRef.current) {
+      // Extract just the winners from each ultimate game
+      const ultimateWinners = metaState.ultimateGames.map(game => game.winner);
+      
+      // Calculate if there's a meta-winner
+      const winner = calculateWinner(ultimateWinners);
+      
+      if (winner && winner !== 'draw') {
+        // Meta-game has a winner
+        setMetaState(prevState => ({
+          ...prevState,
+          metaWinner: winner,
+          metaGameState: 'won'
+        }));
+      } else if (metaState.ultimateGames.every(game => game.status === 'completed')) {
+        // All ultimate games are completed but no winner
+        setMetaState(prevState => ({
+          ...prevState,
+          metaGameState: 'draw'
+        }));
+      }
+      
+      // Reset the check flag
+      checkForWinnerRef.current = false;
     }
   }, [metaState.ultimateGames]);
 
@@ -142,12 +158,14 @@ function MetaBoard() {
 
   // Update an ultimate game's state
   const updateUltimateGameState = (index, updatedGame) => {
-    const newMetaState = { ...metaState };
-    newMetaState.ultimateGames[index] = {
-      ...newMetaState.ultimateGames[index],
-      ...updatedGame
-    };
-    setMetaState(newMetaState);
+    setMetaState(prevState => {
+      const newState = { ...prevState };
+      newState.ultimateGames[index] = {
+        ...newState.ultimateGames[index],
+        ...updatedGame
+      };
+      return newState;
+    });
   };
 
   // Toggle help modal
