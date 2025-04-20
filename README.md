@@ -2,8 +2,9 @@
 
 A Progressive Web App implementation of Ultimate Tic-Tac-Toe, a strategic and complex variant of the classic Tic-Tac-Toe game.
 
-## Game Rules
+## Game Modes
 
+### Classic Ultimate Mode
 - The board consists of a 3×3 grid of smaller Tic-Tac-Toe boards
 - The first player can place their mark in any square on any of the small boards
 - The position of a player's move within a small board determines which small board the next player must play in
@@ -11,8 +12,15 @@ A Progressive Web App implementation of Ultimate Tic-Tac-Toe, a strategic and co
 - The player who wins three small boards in a row (horizontally, vertically, or diagonally) wins the entire game
 - If a player is sent to a board that is already won or full, they can place their mark on any open square on any board
 
-## Features
+### Meta-Duell Hardcore Mode
+- A strategic meta-layer where multiple Ultimate games are organized in a 3×3 grid
+- Each position in the meta-grid represents a full Ultimate Tic-Tac-Toe game
+- The position of the last won sub-game determines which Ultimate game must be played next
+- Players can navigate between the meta-board and any Ultimate game to observe the state of play
+- A player wins the Meta-Duell by winning three Ultimate games in a row on the meta-board
+- If directed to an already completed Ultimate game, the player may choose any available game
 
+## Features
 - Responsive design optimized for iPhone 13 and other mobile devices
 - Progressive Web App capabilities:
   - Offline functionality with service worker
@@ -25,36 +33,30 @@ A Progressive Web App implementation of Ultimate Tic-Tac-Toe, a strategic and co
   - Game status
 - Start screen with game rules
 - Play again option after game completion
+- Hierarchical navigation in Meta-Duell mode
 
 ## Tech Stack
-
 - React with functional components and hooks
 - Progressive Web App (PWA) features
 - CSS3 with responsive design
 - Service Worker for offline capabilities
 
 ## Development
-
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ### Available Scripts
-
 In the project directory, you can run:
 
 #### `npm start`
-
 Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 #### `npm test`
-
 Launches the test runner in interactive watch mode.
 
 #### `npm run build`
-
 Builds the app for production to the `build` folder, optimized and ready for deployment.
 
 ## Installation as PWA
-
 1. Visit the deployed application in a supported browser (Chrome, Safari, etc.)
 2. For iOS:
    - Tap the "Share" button
@@ -65,5 +67,4 @@ Builds the app for production to the `build` folder, optimized and ready for dep
 4. The app will now be available on your home screen with full offline functionality
 
 ## License
-
 MIT
