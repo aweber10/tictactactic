@@ -146,8 +146,12 @@ describe('UltimateGame Component', () => {
       }
     };
     
-    // Mock calculateWinner, um einen Gewinn zurückzugeben
-    calculateWinner.mockImplementation(() => 'X');
+    // Mock calculateWinner für zwei verschiedene Aufrufe:
+    // 1. Für das kleine Board gibt es einen Gewinner
+    // 2. Für das große Board (smallWinners) gibt es auch einen Gewinner
+    calculateWinner
+      .mockImplementationOnce(() => 'X')  // Für das kleine Board
+      .mockImplementationOnce(() => 'X'); // Für das große Board (smallWinners)
     
     // Mock setTimeout, um sofort auszuführen
     jest.useFakeTimers();
@@ -260,13 +264,21 @@ describe('UltimateGame Component', () => {
         boards: defaultProps.gameData.boards.map((board, index) => 
           index === 0 ? [...board.slice(0, 4), 'X', ...board.slice(5)] : board
         )
-      },
-      // Setze explizit nextBoardIndex, um zu erzwingen, dass nur Board 4 aktiv ist
-      nextBoardIndex: 4
+      }
     };
     
-    // Manuelles Setzen des nextBoardIndex in der Komponente
     const { rerender } = render(<UltimateGame {...modifiedProps} />);
+    
+    // Setze manuell den nextBoardIndex in der Komponente durch einen direkten Aufruf
+    // der handleClick-Funktion mit einem Zug, der zu Board 4 führt
+    const instance = screen.getByText('Next player: X').closest('.ultimate-game');
+    
+    // Simuliere einen Klick auf ein Feld, das zu Board 4 führt
+    const boardZeroSquares = document.querySelectorAll('.small-board')[0].querySelectorAll('.square');
+    fireEvent.click(boardZeroSquares[4]); // Dies sollte nextBoardIndex auf 4 setzen
+    
+    // Zurücksetzen des Mocks für den nächsten Test
+    jest.clearAllMocks();
     
     // Simuliere einen Klick auf ein Feld in Board 1 (sollte nicht erlaubt sein)
     const boardOneSquares = document.querySelectorAll('.small-board')[1].querySelectorAll('.square');
@@ -318,13 +330,11 @@ describe('UltimateGame Component', () => {
       }
     };
     
-    // Setze nextBoardIndex explizit auf 4
-    const customProps = {
-      ...modifiedProps,
-      nextBoardIndex: 4
-    };
+    const { rerender } = render(<UltimateGame {...modifiedProps} />);
     
-    render(<UltimateGame {...customProps} />);
+    // Simuliere einen Klick auf ein Feld, das zu Board 4 führt
+    const boardZeroSquares = document.querySelectorAll('.small-board')[0].querySelectorAll('.square');
+    fireEvent.click(boardZeroSquares[4]); // Dies sollte nextBoardIndex auf 4 setzen
     
     // Prüfen, ob der Status den Board-Index anzeigt (mit Regex für flexibles Matching)
     expect(screen.getByText(/Next player: X \(Board 5\)/)).toBeInTheDocument();

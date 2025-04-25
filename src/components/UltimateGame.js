@@ -26,12 +26,14 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       setWinningPosition(gameData.lastWinPosition);
       setProcessingMove(false);
     }
-    
-    // Für Tests: Wenn nextBoardIndex als Prop übergeben wird, verwende diesen Wert
-    if (props.nextBoardIndex !== undefined) {
-      setNextBoardIndex(props.nextBoardIndex);
+  }, [gameData]);
+
+  // Separate effect for nextBoardIndex prop (for testing)
+  useEffect(() => {
+    if (nextBoardIndex !== undefined) {
+      setNextBoardIndex(nextBoardIndex);
     }
-  }, [gameData, props.nextBoardIndex]);
+  }, [nextBoardIndex]);
 
   // Separate effect for updating parent only when needed
   useEffect(() => {
@@ -85,16 +87,20 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       newSmallWinners[boardIndex] = smallWinner;
       setSmallWinners(newSmallWinners);
       
-      // Since we won a small board, check if this results in ultimate win
-      if (smallWinner !== 'draw') {
-        // This will end the ultimate game immediately
-        setUltimateWinner(smallWinner);
+      // Check if this results in ultimate win by checking the pattern of small winners
+      const ultimateWinnerResult = calculateWinner(newSmallWinners);
+      if (ultimateWinnerResult && ultimateWinnerResult !== 'draw') {
+        // Now we have an ultimate winner
+        setUltimateWinner(ultimateWinnerResult);
         setWinningPosition(boardIndex);
         
         // Notify parent component of the win - separate to avoid recursive renders
         setTimeout(() => {
-          onGameWin(gameIndex, smallWinner, boardIndex);
+          onGameWin(gameIndex, ultimateWinnerResult, boardIndex);
         }, 0);
+      } else if (newSmallWinners.every(winner => winner !== null)) {
+        // If all small boards have a result but no ultimate winner, it's a draw
+        setUltimateWinner('draw');
       }
     }
     
