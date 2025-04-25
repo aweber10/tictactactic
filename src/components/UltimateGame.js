@@ -26,7 +26,12 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       setWinningPosition(gameData.lastWinPosition);
       setProcessingMove(false);
     }
-  }, [gameData]);
+    
+    // Für Tests: Wenn nextBoardIndex als Prop übergeben wird, verwende diesen Wert
+    if (props.nextBoardIndex !== undefined) {
+      setNextBoardIndex(props.nextBoardIndex);
+    }
+  }, [gameData, props.nextBoardIndex]);
 
   // Separate effect for updating parent only when needed
   useEffect(() => {
