@@ -57,16 +57,26 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       return;
     }
 
-    // Check if this is a valid move - must be on the correct board if nextBoardIndex is set
-    if (nextBoardIndex !== null && nextBoardIndex !== boardIndex) {
-      console.log('Invalid move: wrong board', nextBoardIndex, boardIndex);
+    // Wenn das Board bereits einen Gewinner hat, ist kein Zug möglich
+    if (smallWinners[boardIndex]) {
       return;
+    }
+
+    // Check if this is a valid move - must be on the correct board if nextBoardIndex is set
+    // Ausnahme: Wenn nextBoardIndex auf ein bereits gewonnenes Board zeigt, darf der Spieler frei wählen
+    if (nextBoardIndex !== null) {
+      // Wenn das Ziel-Board bereits gewonnen ist, darf der Spieler ein beliebiges Board wählen
+      const targetBoardHasWinner = smallWinners[nextBoardIndex] !== null;
+      
+      if (!targetBoardHasWinner && nextBoardIndex !== boardIndex) {
+        console.log('Invalid move: wrong board', nextBoardIndex, boardIndex);
+        return;
+      }
     }
 
     // Prüfe, ob das Board aktiv ist (redundante Sicherheitsprüfung)
     const isSmallBoardActive = isActive && 
                               !ultimateWinner && 
-                              (nextBoardIndex === null || nextBoardIndex === boardIndex) && 
                               !smallWinners[boardIndex];
     
     if (!isSmallBoardActive) {
@@ -119,7 +129,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     
     // Set the next board index based on the square that was clicked
     // Wenn das Zielfeld bereits gewonnen ist oder ein Unentschieden hat, kann der Spieler frei wählen
-    const nextBoard = smallWinners[squareIndex] ? null : squareIndex;
+    const targetBoardIndex = squareIndex;
+    const nextBoard = smallWinners[targetBoardIndex] ? null : targetBoardIndex;
     setNextBoardIndex(nextBoard);
     
     // Mark to update parent after state changes are applied
@@ -148,10 +159,13 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         : 'Viewing only - not your turn';
         
       // Zeige den Board-Index an, wenn ein nextBoardIndex gesetzt ist
-      // Entferne die Bedingung !smallWinners[nextBoardIndex], da sie verhindert,
-      // dass der Board-Index angezeigt wird, wenn das Board bereits einen Gewinner hat
       if (isActive && nextBoardIndex !== null) {
-        message += ` (Board ${nextBoardIndex + 1})`;
+        // Wenn das Ziel-Board bereits gewonnen ist, informiere den Spieler, dass er frei wählen kann
+        if (smallWinners[nextBoardIndex] !== null) {
+          message += ` (Free choice - target board already won)`;
+        } else {
+          message += ` (Board ${nextBoardIndex + 1})`;
+        }
       }
       return message;
     }
