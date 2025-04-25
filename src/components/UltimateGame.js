@@ -28,12 +28,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     }
   }, [gameData]);
 
-  // Separate effect for nextBoardIndex prop (for testing)
-  useEffect(() => {
-    if (nextBoardIndex !== undefined) {
-      setNextBoardIndex(nextBoardIndex);
-    }
-  }, [nextBoardIndex]);
+  // Keine separate Effect für nextBoardIndex nötig, da es bereits im State ist
 
   // Separate effect for updating parent only when needed
   useEffect(() => {
