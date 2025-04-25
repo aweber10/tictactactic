@@ -28,6 +28,13 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     }
   }, [gameData]);
 
+  // Separate effect to handle initialNextBoardIndex changes
+  useEffect(() => {
+    if (initialNextBoardIndex !== undefined) {
+      setNextBoardIndex(initialNextBoardIndex);
+    }
+  }, [initialNextBoardIndex]);
+
   // Keine separate Effect für nextBoardIndex nötig, da es bereits im State ist
 
   // Separate effect for updating parent only when needed
@@ -50,7 +57,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       return;
     }
 
-    // Check if this is a valid move
+    // Check if this is a valid move - must be on the correct board if nextBoardIndex is set
     if (nextBoardIndex !== null && nextBoardIndex !== boardIndex) {
       console.log('Invalid move: wrong board', nextBoardIndex, boardIndex);
       return;

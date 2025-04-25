@@ -257,8 +257,10 @@ describe('UltimateGame Component', () => {
 
   test('verhindert Züge auf inaktive Boards', () => {
     // Erstelle ein Spiel mit einem vorherigen Zug, der zu Board 4 führt
+    // und setze explizit nextBoardIndex auf 4
     const modifiedProps = {
       ...defaultProps,
+      nextBoardIndex: 4, // Explizit nextBoardIndex setzen
       gameData: {
         ...defaultProps.gameData,
         boards: defaultProps.gameData.boards.map((board, index) => 
@@ -267,20 +269,9 @@ describe('UltimateGame Component', () => {
       }
     };
     
-    const { rerender } = render(<UltimateGame {...modifiedProps} />);
+    render(<UltimateGame {...modifiedProps} />);
     
-    // Setze manuell den nextBoardIndex in der Komponente durch einen direkten Aufruf
-    // der handleClick-Funktion mit einem Zug, der zu Board 4 führt
-    const instance = screen.getByText('Next player: X').closest('.ultimate-game');
-    
-    // Simuliere einen Klick auf ein Feld, das zu Board 4 führt
-    const boardZeroSquares = document.querySelectorAll('.small-board')[0].querySelectorAll('.square');
-    fireEvent.click(boardZeroSquares[4]); // Dies sollte nextBoardIndex auf 4 setzen
-    
-    // Zurücksetzen des Mocks für den nächsten Test
-    jest.clearAllMocks();
-    
-    // Simuliere einen Klick auf ein Feld in Board 1 (sollte nicht erlaubt sein)
+    // Simuliere einen Klick auf ein Feld in Board 1 (sollte nicht erlaubt sein, da nextBoardIndex=4)
     const boardOneSquares = document.querySelectorAll('.small-board')[1].querySelectorAll('.square');
     fireEvent.click(boardOneSquares[0]);
     
@@ -319,35 +310,17 @@ describe('UltimateGame Component', () => {
   });
 
   test('zeigt den korrekten Board-Index im Status an', () => {
-    // Erstelle ein Spiel mit einem vorherigen Zug, der zu Board 4 führt
-    // und setze explizit nextBoardIndex auf 4
+    // Erstelle ein Spiel mit explizit gesetztem nextBoardIndex
     const modifiedProps = {
       ...defaultProps,
+      nextBoardIndex: 4, // Explizit nextBoardIndex auf 4 setzen (für Board 5)
       gameData: {
-        ...defaultProps.gameData,
-        boards: defaultProps.gameData.boards.map((board, index) => 
-          index === 0 ? [...board.slice(0, 4), 'X', ...board.slice(5)] : board
-        )
+        ...defaultProps.gameData
       }
     };
     
-    // Rendere die Komponente
-    const { rerender } = render(<UltimateGame {...modifiedProps} />);
-    
-    // Simuliere einen Klick auf ein Feld, das zu Board 4 führt
-    const boardZeroSquares = document.querySelectorAll('.small-board')[0].querySelectorAll('.square');
-    fireEvent.click(boardZeroSquares[4]); // Dies sollte nextBoardIndex auf 4 setzen
-    
-    // Warte auf die Aktualisierung des Status
-    jest.advanceTimersByTime(100);
-    
-    // Manuell den nextBoardIndex setzen durch direktes Aufrufen der Komponente mit einem neuen Prop
-    rerender(
-      <UltimateGame 
-        {...modifiedProps}
-        nextBoardIndex={4} // Explizit nextBoardIndex setzen
-      />
-    );
+    // Rendere die Komponente mit dem expliziten nextBoardIndex
+    render(<UltimateGame {...modifiedProps} />);
     
     // Prüfen, ob der Status den Board-Index anzeigt (mit Regex für flexibles Matching)
     expect(screen.getByText(/Next player: X \(Board 5\)/)).toBeInTheDocument();
