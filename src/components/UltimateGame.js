@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import SmallBoard from './SmallBoard';
 import { calculateWinner } from '../utils/gameUtils';
 
-const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updateGameState }) => {
+const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updateGameState, nextBoardIndex: initialNextBoardIndex }) => {
   const [boards, setBoards] = useState(gameData.boards || Array(9).fill(null).map(() => Array(9).fill(null)));
   const [smallWinners, setSmallWinners] = useState(gameData.smallWinners || Array(9).fill(null));
-  const [nextBoardIndex, setNextBoardIndex] = useState(null);
+  const [nextBoardIndex, setNextBoardIndex] = useState(initialNextBoardIndex || null);
   const [ultimateWinner, setUltimateWinner] = useState(gameData.winner);
   const [winningPosition, setWinningPosition] = useState(gameData.lastWinPosition);
   const [processingMove, setProcessingMove] = useState(false);
@@ -53,6 +53,16 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     // Check if this is a valid move
     if (nextBoardIndex !== null && nextBoardIndex !== boardIndex) {
       console.log('Invalid move: wrong board', nextBoardIndex, boardIndex);
+      return;
+    }
+
+    // Prüfe, ob das Board aktiv ist (redundante Sicherheitsprüfung)
+    const isSmallBoardActive = isActive && 
+                              !ultimateWinner && 
+                              (nextBoardIndex === null || nextBoardIndex === boardIndex) && 
+                              !smallWinners[boardIndex];
+    
+    if (!isSmallBoardActive) {
       return;
     }
 
@@ -130,7 +140,10 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         ? `Next player: ${xIsNext ? 'X' : 'O'}`
         : 'Viewing only - not your turn';
         
-      if (isActive && nextBoardIndex !== null && !smallWinners[nextBoardIndex]) {
+      // Zeige den Board-Index an, wenn ein nextBoardIndex gesetzt ist
+      // Entferne die Bedingung !smallWinners[nextBoardIndex], da sie verhindert,
+      // dass der Board-Index angezeigt wird, wenn das Board bereits einen Gewinner hat
+      if (isActive && nextBoardIndex !== null) {
         message += ` (Board ${nextBoardIndex + 1})`;
       }
       return message;

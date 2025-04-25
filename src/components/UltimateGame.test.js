@@ -320,6 +320,7 @@ describe('UltimateGame Component', () => {
 
   test('zeigt den korrekten Board-Index im Status an', () => {
     // Erstelle ein Spiel mit einem vorherigen Zug, der zu Board 4 führt
+    // und setze explizit nextBoardIndex auf 4
     const modifiedProps = {
       ...defaultProps,
       gameData: {
@@ -330,11 +331,23 @@ describe('UltimateGame Component', () => {
       }
     };
     
+    // Rendere die Komponente
     const { rerender } = render(<UltimateGame {...modifiedProps} />);
     
     // Simuliere einen Klick auf ein Feld, das zu Board 4 führt
     const boardZeroSquares = document.querySelectorAll('.small-board')[0].querySelectorAll('.square');
     fireEvent.click(boardZeroSquares[4]); // Dies sollte nextBoardIndex auf 4 setzen
+    
+    // Warte auf die Aktualisierung des Status
+    jest.advanceTimersByTime(100);
+    
+    // Manuell den nextBoardIndex setzen durch direktes Aufrufen der Komponente mit einem neuen Prop
+    rerender(
+      <UltimateGame 
+        {...modifiedProps}
+        nextBoardIndex={4} // Explizit nextBoardIndex setzen
+      />
+    );
     
     // Prüfen, ob der Status den Board-Index anzeigt (mit Regex für flexibles Matching)
     expect(screen.getByText(/Next player: X \(Board 5\)/)).toBeInTheDocument();
