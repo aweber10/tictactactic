@@ -52,6 +52,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
     // Check if this is a valid move
     if (nextBoardIndex !== null && nextBoardIndex !== boardIndex) {
+      console.log('Invalid move: wrong board', nextBoardIndex, boardIndex);
       return;
     }
 
@@ -100,7 +101,9 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     }
     
     // Set the next board index based on the square that was clicked
-    setNextBoardIndex(smallWinners[squareIndex] ? null : squareIndex);
+    // Wenn das Zielfeld bereits gewonnen ist oder ein Unentschieden hat, kann der Spieler frei wählen
+    const nextBoard = smallWinners[squareIndex] ? null : squareIndex;
+    setNextBoardIndex(nextBoard);
     
     // Mark to update parent after state changes are applied
     setShouldUpdateParent(true);
@@ -116,7 +119,9 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
   // Game status message
   const status = useMemo(() => {
-    if (ultimateWinner) {
+    if (ultimateWinner === 'draw') {
+      return 'Game ended in a draw';
+    } else if (ultimateWinner) {
       return `Ultimate Winner: ${ultimateWinner}`;
     } else if (smallWinners.every(winner => winner !== null)) {
       return 'Game ended in a draw';
@@ -134,7 +139,15 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
   // Render a small board - moved outside the render method to avoid closures
   const renderSmallBoard = useCallback((i) => {
-    const isSmallBoardActive = isActive && !ultimateWinner && (nextBoardIndex === null || nextBoardIndex === i) && !smallWinners[i];
+    // Ein Board ist aktiv, wenn:
+    // 1. Das Spiel aktiv ist
+    // 2. Es keinen ultimativen Gewinner gibt
+    // 3. Entweder kein nextBoardIndex gesetzt ist ODER der nextBoardIndex diesem Board entspricht
+    // 4. Das Board selbst noch keinen Gewinner hat
+    const isSmallBoardActive = isActive && 
+                              !ultimateWinner && 
+                              (nextBoardIndex === null || nextBoardIndex === i) && 
+                              !smallWinners[i];
     
     return (
       <SmallBoard
