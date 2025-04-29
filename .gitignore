@@ -33,3 +33,6 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+.aider*
+aie_aider_startup.cmd
+repomix-output.xml
