@@ -23,6 +23,15 @@ function BigBoard() {
       return;
     }
 
+    // Log the current state before making any changes
+    console.log(`Nach Zug in Board ${boardIndex}, Feld ${squareIndex}:`, {
+      boards: JSON.parse(JSON.stringify(boards)),
+      smallWinners,
+      nextBoardIndex,
+      xIsNext,
+      gameWinner
+    });
+
     // Create copies to update state immutably
     const newBoards = [...boards];
     const currentBoard = [...newBoards[boardIndex]];
