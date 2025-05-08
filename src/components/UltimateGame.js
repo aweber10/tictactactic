@@ -10,7 +10,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
   const [winningPosition, setWinningPosition] = useState(gameData.lastWinPosition);
   const [processingMove, setProcessingMove] = useState(false);
   // Use a separate state for tracking when to update parent
-  const [shouldUpdateParent, setShouldUpdateParent] = useState(false);
+  // Removed shouldUpdateParent state as we now update directly in handleClick
 
   // Sync state with props - using deep comparison to avoid unnecessary updates
   useEffect(() => {
@@ -37,18 +37,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
   // Keine separate Effect für nextBoardIndex nötig, da es bereits im State ist
 
-  // Separate effect for updating parent only when needed
-  useEffect(() => {
-    if (shouldUpdateParent) {
-      updateGameState({
-        boards,
-        smallWinners,
-        winner: ultimateWinner,
-        lastWinPosition: winningPosition
-      });
-      setShouldUpdateParent(false);
-    }
-  }, [shouldUpdateParent, boards, smallWinners, ultimateWinner, winningPosition, updateGameState]);
+  // Removed the separate effect for updating parent as we now update directly in handleClick
 
   // Handle a move in a small board - memoize to avoid recreation on every render
   const handleClick = useCallback((boardIndex, squareIndex) => {
@@ -133,8 +122,17 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     const nextBoard = smallWinners[targetBoardIndex] ? null : targetBoardIndex;
     setNextBoardIndex(nextBoard);
     
-    // Mark to update parent after state changes are applied
-    setShouldUpdateParent(true);
+    // Prepare game state update for parent component
+    const gameStateUpdate = {
+      boards: newBoards,
+      smallWinners: smallWinner ? [...smallWinners].map((w, i) => i === boardIndex ? smallWinner : w) : smallWinners,
+      winner: ultimateWinner,
+      lastWinPosition: winningPosition,
+      nextBoardIndex: nextBoard
+    };
+    
+    // Update parent component with new game state
+    updateGameState(gameStateUpdate);
     
     // Allow new moves after a brief delay
     setTimeout(() => {
@@ -142,7 +140,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     }, 300);
   }, [
     processingMove, isActive, ultimateWinner, nextBoardIndex, 
-    smallWinners, boards, xIsNext, gameIndex, onGameWin
+    smallWinners, boards, xIsNext, gameIndex, onGameWin, updateGameState, winningPosition
   ]);
 
   // Game status message
