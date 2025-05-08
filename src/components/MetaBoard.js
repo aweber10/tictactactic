@@ -195,11 +195,14 @@ const MetaBoard = () => {
       }
       
       // WICHTIG: Wenn ein Brett gewonnen wurde, wechsele zum entsprechenden Game
-      if (updatedGame.boardWon && updatedGame.wonBoardPosition !== undefined) {
-        const nextGameIndex = updatedGame.wonBoardPosition;
+      if (updatedGame.boardWon && updatedGame.wonBoardIndex !== undefined) {
+        // KORREKTUR: Verwende wonBoardIndex (die Position des gewonnenen Bretts) für den Spielwechsel
+        const nextGameIndex = updatedGame.wonBoardIndex;
         
         // DEBUG: Protokolliere das Ziel-Spiel und den Grund für den Wechsel
-        console.log(`Brett ${updatedGame.wonBoardIndex} in Spiel ${index} gewonnen -> Position ${updatedGame.wonBoardPosition} -> wechsle zu Spiel ${nextGameIndex}`);
+        console.log(`SPIELWECHSEL: Brett ${updatedGame.wonBoardIndex} in Spiel ${index} gewonnen -> 
+          Gewonnenes Brett an Position ${updatedGame.wonBoardIndex} -> 
+          Wechsle zu Spiel ${nextGameIndex}`);
         
         // WICHTIG: Das aktuelle Spiel NICHT auf 'not-started' setzen!
         // Es sollte aktiv bleiben, nur nicht das aktuell ausgewählte Spiel sein

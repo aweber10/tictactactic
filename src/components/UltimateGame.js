@@ -132,7 +132,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         }, 0);
       } else {
         // Nur ein kleines Brett gewonnen - WICHTIG: Markiere als boardWon
-        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel sollte ${squareIndex} sein`);
+        // KORREKTUR: Die Position des gewonnenen Bretts (boardIndex) bestimmt das nächste Spiel, nicht squareIndex
+        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel sollte ${boardIndex} sein`);
         
         updateGameState({
           boards: newBoards,
@@ -141,7 +142,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
           lastWinPosition: null,
           boardWon: true, // Markiere, dass ein Brett gewonnen wurde
           wonBoardIndex: boardIndex, // Index des gewonnenen Bretts
-          wonBoardPosition: squareIndex, // Position, die bestimmt, welches Spiel als nächstes aktiv wird
+          wonBoardPosition: boardIndex, // KORREKTUR: Die Position des gewonnenen Bretts bestimmt das nächste Spiel
           wonBy: smallWinner // Füge den Gewinner hinzu für bessere Logs
         });
         
