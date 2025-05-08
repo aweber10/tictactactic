@@ -151,21 +151,45 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       const ultimateWinnerResult = calculateWinner(newSmallWinners);
       
       // Detaillierte Debug-Ausgabe zur Gewinnüberprüfung
+      const winLines = [
+        [0,1,2], [3,4,5], [6,7,8], // horizontal
+        [0,3,6], [1,4,7], [2,5,8], // vertikal
+        [0,4,8], [2,4,6]           // diagonal
+      ];
+      
+      // Manuelle Überprüfung der Gewinnlinien
+      let manualWinner = null;
+      for (const line of winLines) {
+        const [a, b, c] = line;
+        if (
+          newSmallWinners[a] && 
+          newSmallWinners[a] === newSmallWinners[b] && 
+          newSmallWinners[a] === newSmallWinners[c] &&
+          newSmallWinners[a] !== 'draw'
+        ) {
+          manualWinner = newSmallWinners[a];
+          break;
+        }
+      }
+      
       console.log("Überprüfe ultimativen Gewinner:", {
-        ultimateWinnerResult,
+        calculatedWinner: ultimateWinnerResult,
+        manualWinner,
         smallWinners: [...newSmallWinners],
-        winLines: [
-          [0,1,2], [3,4,5], [6,7,8], // horizontal
-          [0,3,6], [1,4,7], [2,5,8], // vertikal
-          [0,4,8], [2,4,6]           // diagonal
-        ].map(line => ({
+        winLines: winLines.map(line => ({
           line,
           values: line.map(i => newSmallWinners[i]),
-          isWinLine: line.every(i => newSmallWinners[i] === newSmallWinners[line[0]] && newSmallWinners[i] !== null)
+          isWinLine: newSmallWinners[line[0]] && 
+                     newSmallWinners[line[0]] === newSmallWinners[line[1]] && 
+                     newSmallWinners[line[0]] === newSmallWinners[line[2]] &&
+                     newSmallWinners[line[0]] !== 'draw'
         }))
       });
       
-      if (ultimateWinnerResult && ultimateWinnerResult !== 'draw') {
+      // Verwende die manuelle Überprüfung anstelle der calculateWinner-Funktion
+      const ultimateWinnerResult = manualWinner;
+      
+      if (ultimateWinnerResult) {
         // Now we have an ultimate winner
         console.log("ULTIMATIVER GEWINNER GEFUNDEN:", ultimateWinnerResult);
         setUltimateWinner(ultimateWinnerResult);

@@ -133,28 +133,45 @@ const MetaBoard = () => {
       const ultimateWinners = metaState.ultimateGames.map(game => game.winner);
       
       // Debug-Ausgabe für Meta-Gewinnüberprüfung
+      const winLines = [
+        [0,1,2], [3,4,5], [6,7,8], // horizontal
+        [0,3,6], [1,4,7], [2,5,8], // vertikal
+        [0,4,8], [2,4,6]           // diagonal
+      ];
+      
+      // Manuelle Überprüfung der Gewinnlinien für Meta-Spiel
+      let metaWinner = null;
+      for (const line of winLines) {
+        const [a, b, c] = line;
+        if (
+          ultimateWinners[a] && 
+          ultimateWinners[a] === ultimateWinners[b] && 
+          ultimateWinners[a] === ultimateWinners[c] &&
+          ultimateWinners[a] !== 'draw'
+        ) {
+          metaWinner = ultimateWinners[a];
+          break;
+        }
+      }
+      
       console.log("Überprüfe Meta-Gewinner:", {
+        calculatedWinner: calculateWinner(ultimateWinners),
+        manualWinner: metaWinner,
         ultimateWinners,
-        winLines: [
-          [0,1,2], [3,4,5], [6,7,8], // horizontal
-          [0,3,6], [1,4,7], [2,5,8], // vertikal
-          [0,4,8], [2,4,6]           // diagonal
-        ].map(line => ({
+        winLines: winLines.map(line => ({
           line,
           values: line.map(i => ultimateWinners[i]),
-          isWinLine: line.every(i => 
-            ultimateWinners[i] && 
-            ultimateWinners[i] === ultimateWinners[line[0]] && 
-            ultimateWinners[i] !== null && 
-            ultimateWinners[i] !== 'draw'
-          )
+          isWinLine: ultimateWinners[line[0]] && 
+                     ultimateWinners[line[0]] === ultimateWinners[line[1]] && 
+                     ultimateWinners[line[0]] === ultimateWinners[line[2]] &&
+                     ultimateWinners[line[0]] !== 'draw'
         }))
       });
       
-      // Calculate if there's a meta-winner
-      const winner = calculateWinner(ultimateWinners);
+      // Verwende die manuelle Überprüfung anstelle der calculateWinner-Funktion
+      const winner = metaWinner;
       
-      if (winner && winner !== 'draw') {
+      if (winner) {
         // Meta-game has a winner
         console.log("META-GEWINNER GEFUNDEN:", winner);
         setMetaState(prevState => ({
