@@ -187,7 +187,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       });
       
       // Verwende die manuelle Überprüfung anstelle der calculateWinner-Funktion
-      const ultimateWinnerResult = manualWinner;
+      // Überschreibe den vorherigen Wert mit dem manuell berechneten
+      ultimateWinnerResult = manualWinner;
       
       if (ultimateWinnerResult) {
         // Now we have an ultimate winner
