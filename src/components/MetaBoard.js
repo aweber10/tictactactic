@@ -37,6 +37,12 @@ const MetaBoard = () => {
 
   // Handle the completion of an ultimate game
   const handleUltimateGameWin = useCallback((ultimateGameIndex, winner, winPosition) => {
+    console.log("Ultimate Game gewonnen:", {
+      ultimateGameIndex,
+      winner,
+      winPosition
+    });
+    
     setMetaState(prevState => {
       const newState = { ...prevState };
       const ultimateGame = { ...newState.ultimateGames[ultimateGameIndex] };
@@ -47,6 +53,15 @@ const MetaBoard = () => {
       ultimateGame.lastWinPosition = winPosition;
       
       newState.ultimateGames[ultimateGameIndex] = ultimateGame;
+      
+      // Debug-Ausgabe für den aktuellen Zustand der Ultimate-Spiele
+      console.log("Ultimate Games nach Gewinn:", 
+        newState.ultimateGames.map((g, i) => ({
+          index: i,
+          status: g.status,
+          winner: g.winner
+        }))
+      );
       
       // Determine next active ultimate game based on the win position
       const nextUltimateGameIndex = winPosition;
@@ -74,6 +89,7 @@ const MetaBoard = () => {
     
     // Set flag to check for a meta winner
     checkForWinnerRef.current = true;
+    console.log("Flag für Meta-Gewinnüberprüfung gesetzt");
     
     // Also set the viewing index to the next active game
     setViewingGameIndex(winPosition);
@@ -116,11 +132,31 @@ const MetaBoard = () => {
       // Extract just the winners from each ultimate game
       const ultimateWinners = metaState.ultimateGames.map(game => game.winner);
       
+      // Debug-Ausgabe für Meta-Gewinnüberprüfung
+      console.log("Überprüfe Meta-Gewinner:", {
+        ultimateWinners,
+        winLines: [
+          [0,1,2], [3,4,5], [6,7,8], // horizontal
+          [0,3,6], [1,4,7], [2,5,8], // vertikal
+          [0,4,8], [2,4,6]           // diagonal
+        ].map(line => ({
+          line,
+          values: line.map(i => ultimateWinners[i]),
+          isWinLine: line.every(i => 
+            ultimateWinners[i] && 
+            ultimateWinners[i] === ultimateWinners[line[0]] && 
+            ultimateWinners[i] !== null && 
+            ultimateWinners[i] !== 'draw'
+          )
+        }))
+      });
+      
       // Calculate if there's a meta-winner
       const winner = calculateWinner(ultimateWinners);
       
       if (winner && winner !== 'draw') {
         // Meta-game has a winner
+        console.log("META-GEWINNER GEFUNDEN:", winner);
         setMetaState(prevState => ({
           ...prevState,
           metaWinner: winner,
@@ -128,6 +164,7 @@ const MetaBoard = () => {
         }));
       } else if (metaState.ultimateGames.every(game => game.status === 'completed')) {
         // All ultimate games are completed but no winner
+        console.log("META-SPIEL UNENTSCHIEDEN");
         setMetaState(prevState => ({
           ...prevState,
           metaGameState: 'draw'

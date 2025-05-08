@@ -51,6 +51,26 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
   // Removed the separate effect for updating parent as we now update directly in handleClick
 
+  // Hilfsfunktion zum Debuggen von Gewinnmustern
+  const getWinningPattern = (squares) => {
+    const lines = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // horizontal
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // vertikal
+      [0, 4, 8], [2, 4, 6]             // diagonal
+    ];
+    
+    return lines
+      .filter(line => 
+        squares[line[0]] && 
+        squares[line[0]] === squares[line[1]] && 
+        squares[line[0]] === squares[line[2]]
+      )
+      .map(line => ({
+        pattern: line,
+        winner: squares[line[0]]
+      }));
+  };
+
   // Handle a move in a small board - memoize to avoid recreation on every render
   const handleClick = useCallback((boardIndex, squareIndex) => {
     // If already processing a move or game is inactive, return
@@ -119,10 +139,35 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       newSmallWinners[boardIndex] = smallWinner;
       setSmallWinners(newSmallWinners);
       
+      // Debug-Ausgabe für das gewonnene Brett
+      console.log("Brett gewonnen:", {
+        boardIndex,
+        smallWinner,
+        smallWinners: [...newSmallWinners],
+        winPattern: getWinningPattern(newSmallWinners)
+      });
+      
       // Check if this results in ultimate win by checking the pattern of small winners
       const ultimateWinnerResult = calculateWinner(newSmallWinners);
+      
+      // Detaillierte Debug-Ausgabe zur Gewinnüberprüfung
+      console.log("Überprüfe ultimativen Gewinner:", {
+        ultimateWinnerResult,
+        smallWinners: [...newSmallWinners],
+        winLines: [
+          [0,1,2], [3,4,5], [6,7,8], // horizontal
+          [0,3,6], [1,4,7], [2,5,8], // vertikal
+          [0,4,8], [2,4,6]           // diagonal
+        ].map(line => ({
+          line,
+          values: line.map(i => newSmallWinners[i]),
+          isWinLine: line.every(i => newSmallWinners[i] === newSmallWinners[line[0]] && newSmallWinners[i] !== null)
+        }))
+      });
+      
       if (ultimateWinnerResult && ultimateWinnerResult !== 'draw') {
         // Now we have an ultimate winner
+        console.log("ULTIMATIVER GEWINNER GEFUNDEN:", ultimateWinnerResult);
         setUltimateWinner(ultimateWinnerResult);
         setWinningPosition(boardIndex);
         
