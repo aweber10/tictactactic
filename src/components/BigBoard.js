@@ -65,7 +65,7 @@ function BigBoard() {
     let nextBoard = squareIndex;
     
     // Check if the next board is already won or full
-    if (smallWinners[nextBoard] || newBoards[nextBoard].every(square => square !== null)) {
+    if (newSmallWinners[nextBoard] || newBoards[nextBoard].every(square => square !== null)) {
       // If the next board is won or full, player can choose any valid board
       nextBoard = null;
     }
@@ -73,11 +73,13 @@ function BigBoard() {
     // Check if there are any playable boards left
     const anyPlayableBoards = newBoards.some((board, index) => {
       // A board is playable if it's not won and not full
-      return !newSmallWinners[index] && !board.every(square => square !== null);
+      return newSmallWinners[index] === null && !board.every(square => square !== null);
     });
     
-    if (!anyPlayableBoards) {
-      // If no playable boards left, set game to draw
+    // Only set to draw if there are no playable boards and no winner yet
+    const bigWinner = calculateWinner(newSmallWinners);
+    if (!anyPlayableBoards && !bigWinner) {
+      // If no playable boards left and no winner, set game to draw
       setGameState('draw');
     }
     
@@ -119,7 +121,7 @@ function BigBoard() {
     // 4. Either the player can choose any board (nextBoardIndex is null) or this is the next board to play
     const isBoardFull = boards[i].every(square => square !== null);
     const isActive = gameState === 'playing' && 
-                    !smallWinners[i] && 
+                    smallWinners[i] === null && 
                     !isBoardFull && 
                     (nextBoardIndex === null || nextBoardIndex === i);
     
