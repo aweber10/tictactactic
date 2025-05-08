@@ -3,15 +3,6 @@ import UltimateGame from './UltimateGame';
 import { calculateWinner } from '../utils/gameUtils';
 
 const MetaBoard = () => {
-  // Debug logging
-  useEffect(() => {
-    console.log("Meta state updated:", {
-      activeGame: metaState.activeUltimateGameIndex,
-      xIsNext: metaState.xIsNext,
-      statuses: metaState.ultimateGames.map(g => g.status)
-    });
-  }, [metaState.activeUltimateGameIndex, metaState.xIsNext]);
-
   // Initial state setup
   const initialGameState = useMemo(() => ({
     ultimateGames: Array(9).fill(null).map(() => ({
@@ -30,6 +21,15 @@ const MetaBoard = () => {
   const [metaState, setMetaState] = useState(initialGameState);
   const [viewingGameIndex, setViewingGameIndex] = useState(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log("Meta state updated:", {
+      activeGame: metaState.activeUltimateGameIndex,
+      xIsNext: metaState.xIsNext,
+      statuses: metaState.ultimateGames.map(g => g.status)
+    });
+  }, [metaState.activeUltimateGameIndex, metaState.xIsNext]);
   
   // Use a ref to track if we need to check for a meta winner
   const checkForWinnerRef = useRef(false);
