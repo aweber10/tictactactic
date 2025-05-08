@@ -160,6 +160,12 @@ const MetaBoard = () => {
       
       const newState = { ...prevState };
       newState.ultimateGames = [...newState.ultimateGames];
+      
+      // Wenn das Spiel ein Unentschieden hat, markiere es als abgeschlossen
+      if (updatedGame.winner === 'draw') {
+        updatedGame.status = 'completed';
+      }
+      
       newState.ultimateGames[index] = {
         ...newState.ultimateGames[index],
         ...updatedGame

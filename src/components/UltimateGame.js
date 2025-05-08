@@ -113,6 +113,11 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       } else if (newSmallWinners.every(winner => winner !== null)) {
         // If all small boards have a result but no ultimate winner, it's a draw
         setUltimateWinner('draw');
+        
+        // Notify parent component about the draw
+        setTimeout(() => {
+          onGameWin(gameIndex, 'draw', boardIndex);
+        }, 0);
       }
     }
     
@@ -151,6 +156,12 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     } else if (ultimateWinner) {
       return `Ultimate Winner: ${ultimateWinner}`;
     } else if (smallWinners.every(winner => winner !== null)) {
+      // Wenn alle kleinen Bretter ein Ergebnis haben, aber noch kein ultimateWinner gesetzt ist
+      // Setze den ultimateWinner auf 'draw' und informiere die übergeordnete Komponente
+      if (!processingMove) {
+        setUltimateWinner('draw');
+        onGameWin(gameIndex, 'draw', null);
+      }
       return 'Game ended in a draw';
     } else {
       let message = isActive 
