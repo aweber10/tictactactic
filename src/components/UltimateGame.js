@@ -94,8 +94,9 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     // Prepare updates with a single batch
     setBoards(newBoards);
     
+    // Update smallWinners if a board was won
+    let newSmallWinners = [...smallWinners];
     if (smallWinner) {
-      const newSmallWinners = [...smallWinners];
       newSmallWinners[boardIndex] = smallWinner;
       setSmallWinners(newSmallWinners);
       
@@ -118,27 +119,48 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         setTimeout(() => {
           onGameWin(gameIndex, 'draw', boardIndex);
         }, 0);
+      } else {
+        // Wichtig: wenn ein Feld gewonnen wurde (nicht das ganze Spiel), 
+        // benachrichtige das MetaBoard über den Feldgewinn ohne das Spiel zu beenden
+        setTimeout(() => {
+          // Spezieller Aufruf für ein gewonnenes Feld, nicht für einen Spielgewinn
+          updateGameState({
+            boards: newBoards,
+            smallWinners: newSmallWinners,
+            winner: null, // Kein Gesamtgewinner
+            lastWinPosition: null,
+            boardWon: true, // Markiere, dass ein Brett gewonnen wurde
+            wonBoardIndex: boardIndex, // Index des gewonnenen Bretts
+            wonBoardPosition: squareIndex // Position, die bestimmt, welches Spiel als nächstes aktiv wird
+          }, true);
+        }, 0);
+        
+        // Set the next board index based on the square that was clicked
+        const targetBoardIndex = squareIndex;
+        const nextBoard = smallWinners[targetBoardIndex] ? null : targetBoardIndex;
+        setNextBoardIndex(nextBoard);
+        
+        return; // Beende die Funktion hier, da wir bereits updateGameState aufgerufen haben
       }
+    } else {
+      // Set the next board index based on the square that was clicked
+      // Wenn das Zielfeld bereits gewonnen ist oder ein Unentschieden hat, kann der Spieler frei wählen
+      const targetBoardIndex = squareIndex;
+      const nextBoard = newSmallWinners[targetBoardIndex] ? null : targetBoardIndex;
+      setNextBoardIndex(nextBoard);
+      
+      // Prepare game state update for parent component
+      const gameStateUpdate = {
+        boards: newBoards,
+        smallWinners: newSmallWinners,
+        winner: ultimateWinner,
+        lastWinPosition: winningPosition,
+        nextBoardIndex: nextBoard
+      };
+      
+      // Update parent component with new game state
+      updateGameState(gameStateUpdate, true);
     }
-    
-    // Set the next board index based on the square that was clicked
-    // Wenn das Zielfeld bereits gewonnen ist oder ein Unentschieden hat, kann der Spieler frei wählen
-    const targetBoardIndex = squareIndex;
-    const nextBoard = smallWinners[targetBoardIndex] ? null : targetBoardIndex;
-    setNextBoardIndex(nextBoard);
-    
-    // Prepare game state update for parent component
-    const gameStateUpdate = {
-      boards: newBoards,
-      smallWinners: smallWinner ? [...smallWinners].map((w, i) => i === boardIndex ? smallWinner : w) : smallWinners,
-      winner: ultimateWinner,
-      lastWinPosition: winningPosition,
-      nextBoardIndex: nextBoard
-    };
-    
-    // Update parent component with new game state
-    // Füge ein drittes Argument hinzu, um anzuzeigen, dass ein Spielerwechsel erfolgen soll
-    updateGameState(gameStateUpdate, true);
     
     // Allow new moves after a brief delay
     setTimeout(() => {

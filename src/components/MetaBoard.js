@@ -153,7 +153,8 @@ const MetaBoard = () => {
         JSON.stringify(currentGame.boards) === JSON.stringify(updatedGame.boards) &&
         JSON.stringify(currentGame.smallWinners) === JSON.stringify(updatedGame.smallWinners) &&
         currentGame.winner === updatedGame.winner &&
-        currentGame.lastWinPosition === updatedGame.lastWinPosition
+        currentGame.lastWinPosition === updatedGame.lastWinPosition &&
+        !updatedGame.boardWon // Keine Änderung, wenn kein Brett gewonnen wurde
       ) {
         return prevState; // No changes, return previous state
       }
@@ -171,6 +172,30 @@ const MetaBoard = () => {
         ...updatedGame
       };
       
+      // WICHTIG: Wenn ein Brett gewonnen wurde, wechsele zum entsprechenden Game
+      if (updatedGame.boardWon) {
+        const nextGameIndex = updatedGame.wonBoardPosition;
+        
+        // Deaktiviere das aktuelle Spiel
+        const currentGame = { ...newState.ultimateGames[index] };
+        if (currentGame.status !== 'completed') {
+          currentGame.status = 'not-started';
+        }
+        newState.ultimateGames[index] = currentGame;
+        
+        // Prüfe, ob das nächste Spiel bereits abgeschlossen ist
+        if (newState.ultimateGames[nextGameIndex].status === 'completed') {
+          // Wenn das nächste Spiel bereits beendet ist, kann der Spieler frei wählen
+          newState.activeUltimateGameIndex = null;
+        } else {
+          // Aktiviere das nächste Spiel
+          const nextGame = { ...newState.ultimateGames[nextGameIndex] };
+          nextGame.status = 'active';
+          newState.ultimateGames[nextGameIndex] = nextGame;
+          newState.activeUltimateGameIndex = nextGameIndex;
+        }
+      }
+      
       // Nach jedem Zug den Spieler wechseln, es sei denn, shouldTogglePlayer ist false
       if (shouldTogglePlayer) {
         newState.xIsNext = !newState.xIsNext;
@@ -178,6 +203,11 @@ const MetaBoard = () => {
       
       return newState;
     });
+    
+    // Wenn ein Brett gewonnen wurde, wechsle die Ansicht zum nächsten Game
+    if (updatedGame.boardWon) {
+      setViewingGameIndex(updatedGame.wonBoardPosition);
+    }
   }, []);
 
   // Toggle help modal
