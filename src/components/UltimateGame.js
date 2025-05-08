@@ -26,7 +26,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       setWinningPosition(gameData.lastWinPosition);
       setProcessingMove(false);
     }
-  }, [gameData]);
+  }, [gameData, boards, smallWinners, ultimateWinner, winningPosition]);
 
   // Separate effect to handle initialNextBoardIndex changes
   useEffect(() => {
