@@ -132,7 +132,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
     };
     
     // Update parent component with new game state
-    updateGameState(gameStateUpdate);
+    // Füge ein drittes Argument hinzu, um anzuzeigen, dass ein Spielerwechsel erfolgen soll
+    updateGameState(gameStateUpdate, true);
     
     // Allow new moves after a brief delay
     setTimeout(() => {

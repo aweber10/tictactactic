@@ -56,8 +56,8 @@ const MetaBoard = () => {
         newState.ultimateGames[nextUltimateGameIndex] = nextGame;
       }
       
-      // Toggle player turn
-      newState.xIsNext = !newState.xIsNext;
+      // WICHTIG: Hier KEINEN Spielerwechsel durchführen, da dieser bereits in updateUltimateGameState erfolgt
+      // Der Spielerwechsel wird bereits bei jedem Zug in updateUltimateGameState durchgeführt
       
       return newState;
     });
@@ -145,7 +145,7 @@ const MetaBoard = () => {
   }, []);
 
   // Update an ultimate game's state
-  const updateUltimateGameState = useCallback((index, updatedGame) => {
+  const updateUltimateGameState = useCallback((index, updatedGame, shouldTogglePlayer = true) => {
     setMetaState(prevState => {
       // Only update if there are actual changes
       const currentGame = prevState.ultimateGames[index];
@@ -164,6 +164,12 @@ const MetaBoard = () => {
         ...newState.ultimateGames[index],
         ...updatedGame
       };
+      
+      // Nach jedem Zug den Spieler wechseln, es sei denn, shouldTogglePlayer ist false
+      if (shouldTogglePlayer) {
+        newState.xIsNext = !newState.xIsNext;
+      }
+      
       return newState;
     });
   }, []);
