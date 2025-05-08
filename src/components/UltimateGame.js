@@ -16,9 +16,11 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
   useEffect(() => {
     console.log(`UltimateGame ${gameIndex} rendered with:`, {
       isActive,
-      status: gameData.status
+      status: gameData.status,
+      nextBoardIndex,
+      smallWinners: smallWinners.map((w, i) => w ? `${i}:${w}` : null).filter(Boolean)
     });
-  }, [gameIndex, isActive, gameData.status]);
+  }, [gameIndex, isActive, gameData.status, nextBoardIndex, smallWinners]);
 
   // Sync state with props - using deep comparison to avoid unnecessary updates
   useEffect(() => {
@@ -130,10 +132,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         }, 0);
       } else {
         // Nur ein kleines Brett gewonnen - WICHTIG: Markiere als boardWon
-        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel: ${squareIndex}`);
+        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel sollte ${squareIndex} sein`);
         
-        // Behalte den nextBoardIndex für dieses Spiel bei, aber setze das boardWon-Flag
-        // damit das übergeordnete Spiel weiß, dass es zum nächsten Spiel wechseln muss
         updateGameState({
           boards: newBoards,
           smallWinners: newSmallWinners,
@@ -141,7 +141,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
           lastWinPosition: null,
           boardWon: true, // Markiere, dass ein Brett gewonnen wurde
           wonBoardIndex: boardIndex, // Index des gewonnenen Bretts
-          wonBoardPosition: squareIndex // Position, die bestimmt, welches Spiel als nächstes aktiv wird
+          wonBoardPosition: squareIndex, // Position, die bestimmt, welches Spiel als nächstes aktiv wird
+          wonBy: smallWinner // Füge den Gewinner hinzu für bessere Logs
         });
         
         // Wir setzen hier keinen nextBoardIndex, da wir zu einem anderen Spiel wechseln werden

@@ -198,13 +198,15 @@ const MetaBoard = () => {
       // WICHTIG: Wenn ein Brett gewonnen wurde, wechsele zum entsprechenden Game
       if (updatedGame.boardWon && updatedGame.wonBoardPosition !== undefined) {
         const nextGameIndex = updatedGame.wonBoardPosition;
-        console.log(`Brett gewonnen in Spiel ${index}, wechsle zu Spiel ${nextGameIndex}`);
+        
+        // DEBUG: Protokolliere das Ziel-Spiel und den Grund für den Wechsel
+        console.log(`Brett ${updatedGame.wonBoardIndex} in Spiel ${index} gewonnen -> Position ${updatedGame.wonBoardPosition} -> wechsle zu Spiel ${nextGameIndex}`);
         
         // Aktualisiere den Status des aktuellen Spiels (deaktiviere es)
-        // Aber behalte den nextBoardIndex für dieses Spiel bei
         newState.ultimateGames[index] = {
           ...newState.ultimateGames[index],
-          status: 'not-started' // Wenn nicht abgeschlossen, setze auf "nicht gestartet"
+          status: 'not-started',
+          // nextBoardIndex behält seinen Wert für dieses Spiel
         };
         
         // Prüfe, ob das nächste Spiel bereits abgeschlossen ist
@@ -212,24 +214,34 @@ const MetaBoard = () => {
           console.log(`Spiel ${nextGameIndex} ist bereits beendet, Spieler kann frei wählen`);
           newState.activeUltimateGameIndex = null;
         } else {
-          // Aktiviere das nächste Spiel
-          newState.ultimateGames[nextGameIndex] = {
-            ...newState.ultimateGames[nextGameIndex],
-            status: 'active'
-          };
+          // Aktiviere das nächste Spiel - alle anderen Spiele deaktivieren
+          for (let i = 0; i < newState.ultimateGames.length; i++) {
+            if (i !== nextGameIndex && newState.ultimateGames[i].status !== 'completed') {
+              newState.ultimateGames[i].status = 'not-started';
+            }
+          }
+          
+          newState.ultimateGames[nextGameIndex].status = 'active';
           newState.activeUltimateGameIndex = nextGameIndex;
         }
         
-        // Setze auch die Ansicht auf das nächste Spiel
-        setTimeout(() => {
-          setViewingGameIndex(nextGameIndex);
-        }, 0);
+        // Setze sofort viewingGameIndex (nicht verzögert)
+        console.log(`Wechsle Ansicht zu Spiel ${nextGameIndex}`);
+        setViewingGameIndex(nextGameIndex);
       }
       
       // Nach jedem Zug den Spieler wechseln, wenn erforderlich
       if (shouldTogglePlayer) {
         newState.xIsNext = !newState.xIsNext;
       }
+      
+      console.log(`Game State nach Update:`, {
+        index,
+        boardWon: updatedGame.boardWon,
+        wonBoardPosition: updatedGame.wonBoardPosition,
+        activeGame: newState.activeUltimateGameIndex,
+        nextViewingIndex: viewingGameIndex
+      });
       
       return newState;
     });
@@ -263,6 +275,10 @@ const MetaBoard = () => {
     const game = metaState.ultimateGames[index];
     const isActive = metaState.activeUltimateGameIndex === index;
     const canStart = metaState.activeUltimateGameIndex === null || isActive;
+    
+    // DEBUG: Zeige den Status jedes Spiels
+    console.log(`MetaCell ${index}: status=${game.status}, isActive=${isActive}, canStart=${canStart}`);
+    
     const cellClass = `meta-cell ${game.status === 'completed' ? `won-by-${game.winner}` : ''} ${isActive ? 'active' : ''} ${game.status === 'not-started' && canStart ? 'can-start' : ''}`;
     
     return (
