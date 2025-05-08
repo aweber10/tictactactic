@@ -147,9 +147,6 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         winPattern: getWinningPattern(newSmallWinners)
       });
       
-      // Check if this results in ultimate win by checking the pattern of small winners
-      const ultimateWinnerResult = calculateWinner(newSmallWinners);
-      
       // Detaillierte Debug-Ausgabe zur Gewinnüberprüfung
       const winLines = [
         [0,1,2], [3,4,5], [6,7,8], // horizontal
@@ -172,8 +169,11 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         }
       }
       
+      // Verwende die manuelle Überprüfung anstelle der calculateWinner-Funktion
+      const ultimateWinnerResult = manualWinner;
+      
       console.log("Überprüfe ultimativen Gewinner:", {
-        calculatedWinner: ultimateWinnerResult,
+        calculatedWinner: calculateWinner(newSmallWinners),
         manualWinner,
         smallWinners: [...newSmallWinners],
         winLines: winLines.map(line => ({
@@ -185,10 +185,6 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
                      newSmallWinners[line[0]] !== 'draw'
         }))
       });
-      
-      // Verwende die manuelle Überprüfung anstelle der calculateWinner-Funktion
-      // Überschreibe den vorherigen Wert mit dem manuell berechneten
-      ultimateWinnerResult = manualWinner;
       
       if (ultimateWinnerResult) {
         // Now we have an ultimate winner
