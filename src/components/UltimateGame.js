@@ -38,10 +38,11 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
   // Separate effect to handle initialNextBoardIndex changes
   useEffect(() => {
-    if (initialNextBoardIndex !== undefined) {
+    if (initialNextBoardIndex !== undefined && initialNextBoardIndex !== nextBoardIndex) {
+      console.log(`Updating nextBoardIndex from props: ${initialNextBoardIndex}`);
       setNextBoardIndex(initialNextBoardIndex);
     }
-  }, [initialNextBoardIndex]);
+  }, [initialNextBoardIndex, nextBoardIndex]);
 
   // Keine separate Effect für nextBoardIndex nötig, da es bereits im State ist
 
@@ -131,6 +132,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         // Nur ein kleines Brett gewonnen - WICHTIG: Markiere als boardWon
         console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel: ${squareIndex}`);
         
+        // Behalte den nextBoardIndex für dieses Spiel bei, aber setze das boardWon-Flag
+        // damit das übergeordnete Spiel weiß, dass es zum nächsten Spiel wechseln muss
         updateGameState({
           boards: newBoards,
           smallWinners: newSmallWinners,
@@ -141,10 +144,8 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
           wonBoardPosition: squareIndex // Position, die bestimmt, welches Spiel als nächstes aktiv wird
         });
         
-        // Set the next board index based on the square that was clicked
-        const targetBoardIndex = squareIndex;
-        const nextBoard = newSmallWinners[targetBoardIndex] ? null : targetBoardIndex;
-        setNextBoardIndex(nextBoard);
+        // Wir setzen hier keinen nextBoardIndex, da wir zu einem anderen Spiel wechseln werden
+        // Der aktuelle nextBoardIndex bleibt für dieses Spiel erhalten
         
         return; // Beende die Funktion hier, da wir bereits updateGameState aufgerufen haben
       }
@@ -161,7 +162,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         smallWinners: newSmallWinners,
         winner: ultimateWinner,
         lastWinPosition: winningPosition,
-        nextBoardIndex: nextBoard
+        nextBoardIndex: nextBoard // Wichtig: Aktualisiere das NextBoardIndex für das aktuelle Spiel
       };
       
       // Update parent component with new game state

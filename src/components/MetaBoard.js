@@ -10,7 +10,8 @@ const MetaBoard = () => {
       winner: null, // null, 'X', 'O', 'draw'
       boards: Array(9).fill(null).map(() => Array(9).fill(null)),
       smallWinners: Array(9).fill(null),
-      lastWinPosition: null // Position of the last winning small board
+      lastWinPosition: null, // Position of the last winning small board
+      nextBoardIndex: null // Speichere, welches Brett innerhalb dieses Spiels als nächstes aktiv sein soll
     })),
     xIsNext: true,
     activeUltimateGameIndex: null,
@@ -167,6 +168,7 @@ const MetaBoard = () => {
         JSON.stringify(currentGame.smallWinners) !== JSON.stringify(updatedGame.smallWinners) ||
         currentGame.winner !== updatedGame.winner ||
         currentGame.lastWinPosition !== updatedGame.lastWinPosition ||
+        currentGame.nextBoardIndex !== updatedGame.nextBoardIndex ||
         updatedGame.boardWon; // Auch aktualisieren, wenn ein Brett gewonnen wurde
       
       if (!hasRelevantChanges) {
@@ -181,7 +183,11 @@ const MetaBoard = () => {
         ...newState.ultimateGames[index],
         ...updatedGame,
         // Stelle sicher, dass der Status beibehalten wird, außer bei expliziter Änderung
-        status: updatedGame.status || newState.ultimateGames[index].status
+        status: updatedGame.status || newState.ultimateGames[index].status,
+        // Speichere nextBoardIndex im Spielzustand
+        nextBoardIndex: updatedGame.nextBoardIndex !== undefined 
+          ? updatedGame.nextBoardIndex 
+          : newState.ultimateGames[index].nextBoardIndex
       };
       
       // Wenn das Spiel ein Unentschieden hat, markiere es als abgeschlossen
@@ -195,6 +201,7 @@ const MetaBoard = () => {
         console.log(`Brett gewonnen in Spiel ${index}, wechsle zu Spiel ${nextGameIndex}`);
         
         // Aktualisiere den Status des aktuellen Spiels (deaktiviere es)
+        // Aber behalte den nextBoardIndex für dieses Spiel bei
         newState.ultimateGames[index] = {
           ...newState.ultimateGames[index],
           status: 'not-started' // Wenn nicht abgeschlossen, setze auf "nicht gestartet"
@@ -329,6 +336,7 @@ const MetaBoard = () => {
           isActive={metaState.activeUltimateGameIndex === viewingGameIndex}
           onGameWin={handleUltimateGameWin}
           updateGameState={(updatedGame) => updateUltimateGameState(viewingGameIndex, updatedGame)}
+          nextBoardIndex={metaState.ultimateGames[viewingGameIndex].nextBoardIndex}
         />
       </div>
     );
