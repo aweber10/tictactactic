@@ -208,7 +208,7 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       }
       return message;
     }
-  }, [ultimateWinner, smallWinners, isActive, xIsNext, nextBoardIndex]);
+  }, [ultimateWinner, smallWinners, isActive, xIsNext, nextBoardIndex, gameIndex, onGameWin, processingMove]);
 
   // Render a small board - moved outside the render method to avoid closures
   const renderSmallBoard = useCallback((i) => {

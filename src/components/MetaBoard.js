@@ -30,7 +30,7 @@ const MetaBoard = () => {
       xIsNext: metaState.xIsNext,
       statuses: metaState.ultimateGames.map(g => g.status)
     });
-  }, [metaState.activeUltimateGameIndex, metaState.xIsNext]);
+  }, [metaState.activeUltimateGameIndex, metaState.xIsNext, metaState.ultimateGames]);
   
   // Use a ref to track if we need to check for a meta winner
   const checkForWinnerRef = useRef(false);
