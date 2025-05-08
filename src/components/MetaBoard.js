@@ -91,20 +91,16 @@ const MetaBoard = () => {
       setMetaState(prevState => {
         const newState = { ...prevState };
         
-        // Mark previous active game as not active
-        if (prevState.activeUltimateGameIndex !== null && prevState.activeUltimateGameIndex !== index) {
-          const prevGame = { ...newState.ultimateGames[prevState.activeUltimateGameIndex] };
-          if (prevGame.status !== 'completed') {
-            prevGame.status = 'not-started';
-            newState.ultimateGames[prevState.activeUltimateGameIndex] = prevGame;
-          }
-        }
-        
-        // Set the new active game
-        const game = { ...newState.ultimateGames[index] };
-        game.status = 'active';
-        newState.ultimateGames[index] = game;
+        // Setze nur den activeUltimateGameIndex, aber ändere nicht die Status
+        // der anderen Spiele, damit sie ihren Fortschritt behalten
         newState.activeUltimateGameIndex = index;
+        
+        // Stelle sicher, dass das ausgewählte Spiel aktiv ist
+        const game = { ...newState.ultimateGames[index] };
+        if (game.status !== 'completed') {
+          game.status = 'active';
+          newState.ultimateGames[index] = game;
+        }
         
         return newState;
       });
@@ -158,6 +154,9 @@ const MetaBoard = () => {
   const updateUltimateGameState = useCallback((index, updatedGame, shouldTogglePlayer = true) => {
     console.log(`Updating game ${index} with:`, updatedGame, "Toggle player:", shouldTogglePlayer);
     
+    // Verwende lokale Variable für viewingGameIndex-Änderungen
+    let newViewingGameIndex = null;
+    
     setMetaState(prevState => {
       // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
       const currentGame = prevState.ultimateGames[index];
@@ -202,32 +201,28 @@ const MetaBoard = () => {
         // DEBUG: Protokolliere das Ziel-Spiel und den Grund für den Wechsel
         console.log(`Brett ${updatedGame.wonBoardIndex} in Spiel ${index} gewonnen -> Position ${updatedGame.wonBoardPosition} -> wechsle zu Spiel ${nextGameIndex}`);
         
-        // Aktualisiere den Status des aktuellen Spiels (deaktiviere es)
-        newState.ultimateGames[index] = {
-          ...newState.ultimateGames[index],
-          status: 'not-started',
-          // nextBoardIndex behält seinen Wert für dieses Spiel
-        };
+        // WICHTIG: Das aktuelle Spiel NICHT auf 'not-started' setzen!
+        // Es sollte aktiv bleiben, nur nicht das aktuell ausgewählte Spiel sein
+        if (newState.activeUltimateGameIndex === index) {
+          // Deaktiviere nur vorübergehend - es soll nicht als "nicht gestartet" erscheinen
+          newState.activeUltimateGameIndex = null;
+        }
         
         // Prüfe, ob das nächste Spiel bereits abgeschlossen ist
         if (newState.ultimateGames[nextGameIndex].status === 'completed') {
           console.log(`Spiel ${nextGameIndex} ist bereits beendet, Spieler kann frei wählen`);
           newState.activeUltimateGameIndex = null;
         } else {
-          // Aktiviere das nächste Spiel - alle anderen Spiele deaktivieren
-          for (let i = 0; i < newState.ultimateGames.length; i++) {
-            if (i !== nextGameIndex && newState.ultimateGames[i].status !== 'completed') {
-              newState.ultimateGames[i].status = 'not-started';
-            }
-          }
-          
-          newState.ultimateGames[nextGameIndex].status = 'active';
+          // Setze nur das neue Spiel auf "active"
+          newState.ultimateGames[nextGameIndex] = {
+            ...newState.ultimateGames[nextGameIndex],
+            status: 'active'
+          };
           newState.activeUltimateGameIndex = nextGameIndex;
         }
         
-        // Setze sofort viewingGameIndex (nicht verzögert)
-        console.log(`Wechsle Ansicht zu Spiel ${nextGameIndex}`);
-        setViewingGameIndex(nextGameIndex);
+        // Speichere das nächste Spiel in der lokalen Variable
+        newViewingGameIndex = nextGameIndex;
       }
       
       // Nach jedem Zug den Spieler wechseln, wenn erforderlich
@@ -245,7 +240,12 @@ const MetaBoard = () => {
       
       return newState;
     });
-  }, []);
+    
+    // Setze viewingGameIndex außerhalb der metaState-Aktualisierung, wenn nötig
+    if (newViewingGameIndex !== null) {
+      setViewingGameIndex(newViewingGameIndex);
+    }
+  }, [viewingGameIndex]);
 
   // Toggle help modal
   const toggleHelpModal = useCallback(() => {
@@ -276,10 +276,17 @@ const MetaBoard = () => {
     const isActive = metaState.activeUltimateGameIndex === index;
     const canStart = metaState.activeUltimateGameIndex === null || isActive;
     
-    // DEBUG: Zeige den Status jedes Spiels
-    console.log(`MetaCell ${index}: status=${game.status}, isActive=${isActive}, canStart=${canStart}`);
+    // Bestimme eine Klasse, die anzeigt, dass dieses Spiel bereits Fortschritte hat
+    const hasProgress = game.smallWinners.some(winner => winner !== null);
     
-    const cellClass = `meta-cell ${game.status === 'completed' ? `won-by-${game.winner}` : ''} ${isActive ? 'active' : ''} ${game.status === 'not-started' && canStart ? 'can-start' : ''}`;
+    // DEBUG: Zeige den Status jedes Spiels
+    console.log(`MetaCell ${index}: status=${game.status}, isActive=${isActive}, canStart=${canStart}, hasProgress=${hasProgress}`);
+    
+    const cellClass = `meta-cell 
+      ${game.status === 'completed' ? `won-by-${game.winner}` : ''} 
+      ${isActive ? 'active' : ''} 
+      ${game.status === 'not-started' && canStart ? 'can-start' : ''}
+      ${hasProgress && !isActive && game.status !== 'completed' ? 'has-progress' : ''}`;
     
     return (
       <div 
@@ -293,7 +300,9 @@ const MetaBoard = () => {
           <div className="meta-preview">
             Game {index + 1}
             <div className="meta-status-indicator">
-              {game.status === 'active' ? 'Active' : 'Not Started'}
+              {isActive ? 'Active' : 
+               hasProgress ? 'In Progress' : 
+               'Not Started'}
             </div>
           </div>
         )}
