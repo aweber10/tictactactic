@@ -15,12 +15,12 @@ function BigBoard() {
   // Handle a move in a small board
   const handleClick = (boardIndex, squareIndex) => {
 
-    console.log("Verfügbare Bretter:", this.state.boards.map((board, index) => {
+    console.log("Verfügbare Bretter:", boards.map((board, index) => {
       return {
         boardIndex: index,
         isFull: board.every(square => square !== null),
-        isWon: this.state.smallWinners[index] !== null,
-        available: this.state.smallWinners[index] === null && !board.every(square => square !== null)
+        isWon: smallWinners[index] !== null,
+        available: smallWinners[index] === null && !board.every(square => square !== null)
       };
     }));
 
@@ -60,7 +60,27 @@ function BigBoard() {
     }
     
     // Set the next board index based on the square that was clicked
-    setNextBoardIndex(smallWinners[squareIndex] ? null : squareIndex);
+    let nextBoard = squareIndex;
+    
+    // Check if the next board is already won or full
+    if (smallWinners[nextBoard] || newBoards[nextBoard].every(square => square !== null)) {
+      // If the next board is won or full, player can choose any valid board
+      nextBoard = null;
+    }
+    
+    // Check if there are any playable boards left
+    const anyPlayableBoards = newBoards.some((board, index) => {
+      // A board is playable if it's not won and not full
+      return !newSmallWinners[index] && !board.every(square => square !== null);
+    });
+    
+    if (!anyPlayableBoards) {
+      // If no playable boards left, set game to draw
+      setGameState('draw');
+    }
+    
+    // Update the next board index
+    setNextBoardIndex(nextBoard);
     
     // Toggle player turn
     setXIsNext(!xIsNext);
@@ -90,7 +110,16 @@ function BigBoard() {
 
   // Render a small board
   const renderSmallBoard = (i) => {
-    const isActive = gameState === 'playing' && (nextBoardIndex === null || nextBoardIndex === i) && !smallWinners[i];
+    // A board is active if:
+    // 1. The game is still in progress
+    // 2. The board is not already won
+    // 3. The board is not already full
+    // 4. Either the player can choose any board (nextBoardIndex is null) or this is the next board to play
+    const isBoardFull = boards[i].every(square => square !== null);
+    const isActive = gameState === 'playing' && 
+                    !smallWinners[i] && 
+                    !isBoardFull && 
+                    (nextBoardIndex === null || nextBoardIndex === i);
     
     return (
       <SmallBoard
