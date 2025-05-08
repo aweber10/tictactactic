@@ -51,9 +51,13 @@ function BigBoard() {
     newBoards[boardIndex] = currentBoard;
     setBoards(newBoards);
     
+    // Create updated smallWinners array with the current move's result
+    const newSmallWinners = [...smallWinners];
+    
     // Check if the small board has been won
     const smallWinner = calculateWinner(currentBoard);
     if (smallWinner) {
+      newSmallWinners[boardIndex] = smallWinner;
       setSmallWinners(newSmallWinners);
     }
     
@@ -64,12 +68,6 @@ function BigBoard() {
     if (smallWinners[nextBoard] || newBoards[nextBoard].every(square => square !== null)) {
       // If the next board is won or full, player can choose any valid board
       nextBoard = null;
-    }
-    
-    // Create updated smallWinners array with the current move's result
-    const newSmallWinners = [...smallWinners];
-    if (smallWinner) {
-      newSmallWinners[boardIndex] = smallWinner;
     }
     
     // Check if there are any playable boards left
