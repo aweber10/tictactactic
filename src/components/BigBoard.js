@@ -14,6 +14,16 @@ function BigBoard() {
 
   // Handle a move in a small board
   const handleClick = (boardIndex, squareIndex) => {
+
+    console.log("Verfügbare Bretter:", this.state.boards.map((board, index) => {
+      return {
+        boardIndex: index,
+        isFull: board.every(square => square !== null),
+        isWon: this.state.smallWinners[index] !== null,
+        available: this.state.smallWinners[index] === null && !board.every(square => square !== null)
+      };
+    }));
+
     if (gameState !== 'playing' || smallWinners[boardIndex] || boards[boardIndex][squareIndex]) {
       return;
     }
