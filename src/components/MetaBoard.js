@@ -220,11 +220,23 @@ const MetaBoard = () => {
           newState.activeUltimateGameIndex = null;
         } else {
           // Setze das neue Spiel auf "active" und setze das aktive Brett basierend auf dem letzten Zug
+          const nextActiveBoard = updatedGame.lastMovePosition;
+          
+          // Prüfe, ob das Ziel-Brett bereits gewonnen ist
+          const targetBoardAlreadyWon = newState.ultimateGames[nextGameIndex].smallWinners[nextActiveBoard] !== null;
+          
+          console.log(`Setze aktives Brett in Spiel ${nextGameIndex}:`, {
+            nextActiveBoard,
+            targetBoardAlreadyWon,
+            // Wenn das Ziel-Brett bereits gewonnen ist, setze nextBoardIndex auf null (freie Wahl)
+            finalNextBoardIndex: targetBoardAlreadyWon ? null : nextActiveBoard
+          });
+          
           newState.ultimateGames[nextGameIndex] = {
             ...newState.ultimateGames[nextGameIndex],
             status: 'active',
-            // Setze das aktive Brett im neuen Spiel basierend auf dem letzten Zug
-            nextBoardIndex: updatedGame.lastMovePosition
+            // Wenn das Ziel-Brett bereits gewonnen ist, setze nextBoardIndex auf null (freie Wahl)
+            nextBoardIndex: targetBoardAlreadyWon ? null : nextActiveBoard
           };
           newState.activeUltimateGameIndex = nextGameIndex;
         }

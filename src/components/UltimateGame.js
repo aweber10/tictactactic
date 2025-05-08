@@ -69,6 +69,13 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
       // Wenn das Ziel-Board bereits gewonnen ist, darf der Spieler ein beliebiges Board wählen
       const targetBoardHasWinner = smallWinners[nextBoardIndex] !== null;
       
+      console.log('Move validation:', {
+        nextBoardIndex,
+        boardIndex,
+        targetBoardHasWinner,
+        isValidMove: targetBoardHasWinner || nextBoardIndex === boardIndex
+      });
+      
       if (!targetBoardHasWinner && nextBoardIndex !== boardIndex) {
         console.log('Invalid move: wrong board', nextBoardIndex, boardIndex);
         return;
@@ -204,9 +211,10 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         : 'Viewing only - not your turn';
         
       // Zeige den Board-Index an, wenn ein nextBoardIndex gesetzt ist
-      if (isActive && nextBoardIndex !== null) {
-        // Wenn das Ziel-Board bereits gewonnen ist, informiere den Spieler, dass er frei wählen kann
-        if (smallWinners[nextBoardIndex] !== null) {
+      if (isActive) {
+        if (nextBoardIndex === null) {
+          message += ` (Free choice)`;
+        } else if (smallWinners[nextBoardIndex] !== null) {
           message += ` (Free choice - target board already won)`;
         } else {
           message += ` (Board ${nextBoardIndex + 1})`;
@@ -218,15 +226,30 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
 
   // Render a small board - moved outside the render method to avoid closures
   const renderSmallBoard = useCallback((i) => {
+    // Prüfe, ob das Ziel-Brett bereits gewonnen ist
+    const targetBoardHasWinner = nextBoardIndex !== null && smallWinners[nextBoardIndex] !== null;
+    
     // Ein Board ist aktiv, wenn:
     // 1. Das Spiel aktiv ist
     // 2. Es keinen ultimativen Gewinner gibt
-    // 3. Entweder kein nextBoardIndex gesetzt ist ODER der nextBoardIndex diesem Board entspricht
-    // 4. Das Board selbst noch keinen Gewinner hat
+    // 3. Das Board selbst noch keinen Gewinner hat
+    // 4. Entweder:
+    //    a) nextBoardIndex ist null (freie Wahl) ODER
+    //    b) nextBoardIndex ist dieses Brett ODER
+    //    c) Das Ziel-Brett (nextBoardIndex) hat bereits einen Gewinner (freie Wahl)
     const isSmallBoardActive = isActive && 
                               !ultimateWinner && 
-                              (nextBoardIndex === null || nextBoardIndex === i) && 
-                              !smallWinners[i];
+                              !smallWinners[i] &&
+                              (nextBoardIndex === null || nextBoardIndex === i || targetBoardHasWinner);
+    
+    // Debug-Ausgabe zur Aktivierungslogik
+    console.log(`renderSmallBoard ${i}:`, {
+      isActive,
+      nextBoardIndex,
+      targetBoardHasWinner,
+      hasWinner: smallWinners[i] !== null,
+      isSmallBoardActive
+    });
     
     return (
       <SmallBoard
