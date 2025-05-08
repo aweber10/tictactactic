@@ -12,6 +12,14 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
   // Use a separate state for tracking when to update parent
   // Removed shouldUpdateParent state as we now update directly in handleClick
 
+  // Debug logging
+  useEffect(() => {
+    console.log(`UltimateGame ${gameIndex} rendered with:`, {
+      isActive,
+      status: gameData.status
+    });
+  }, [gameIndex, isActive, gameData.status]);
+
   // Sync state with props - using deep comparison to avoid unnecessary updates
   useEffect(() => {
     if (
@@ -120,24 +128,22 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
           onGameWin(gameIndex, 'draw', boardIndex);
         }, 0);
       } else {
-        // Wichtig: wenn ein Feld gewonnen wurde (nicht das ganze Spiel), 
-        // benachrichtige das MetaBoard über den Feldgewinn ohne das Spiel zu beenden
-        setTimeout(() => {
-          // Spezieller Aufruf für ein gewonnenes Feld, nicht für einen Spielgewinn
-          updateGameState({
-            boards: newBoards,
-            smallWinners: newSmallWinners,
-            winner: null, // Kein Gesamtgewinner
-            lastWinPosition: null,
-            boardWon: true, // Markiere, dass ein Brett gewonnen wurde
-            wonBoardIndex: boardIndex, // Index des gewonnenen Bretts
-            wonBoardPosition: squareIndex // Position, die bestimmt, welches Spiel als nächstes aktiv wird
-          }, true);
-        }, 0);
+        // Nur ein kleines Brett gewonnen - WICHTIG: Markiere als boardWon
+        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel: ${squareIndex}`);
+        
+        updateGameState({
+          boards: newBoards,
+          smallWinners: newSmallWinners,
+          winner: null, // Kein Gesamtgewinner
+          lastWinPosition: null,
+          boardWon: true, // Markiere, dass ein Brett gewonnen wurde
+          wonBoardIndex: boardIndex, // Index des gewonnenen Bretts
+          wonBoardPosition: squareIndex // Position, die bestimmt, welches Spiel als nächstes aktiv wird
+        });
         
         // Set the next board index based on the square that was clicked
         const targetBoardIndex = squareIndex;
-        const nextBoard = smallWinners[targetBoardIndex] ? null : targetBoardIndex;
+        const nextBoard = newSmallWinners[targetBoardIndex] ? null : targetBoardIndex;
         setNextBoardIndex(nextBoard);
         
         return; // Beende die Funktion hier, da wir bereits updateGameState aufgerufen haben

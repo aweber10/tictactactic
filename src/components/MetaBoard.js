@@ -3,6 +3,15 @@ import UltimateGame from './UltimateGame';
 import { calculateWinner } from '../utils/gameUtils';
 
 const MetaBoard = () => {
+  // Debug logging
+  useEffect(() => {
+    console.log("Meta state updated:", {
+      activeGame: metaState.activeUltimateGameIndex,
+      xIsNext: metaState.xIsNext,
+      statuses: metaState.ultimateGames.map(g => g.status)
+    });
+  }, [metaState.activeUltimateGameIndex, metaState.xIsNext]);
+
   // Initial state setup
   const initialGameState = useMemo(() => ({
     ultimateGames: Array(9).fill(null).map(() => ({
@@ -146,68 +155,77 @@ const MetaBoard = () => {
 
   // Update an ultimate game's state
   const updateUltimateGameState = useCallback((index, updatedGame, shouldTogglePlayer = true) => {
+    console.log(`Updating game ${index} with:`, updatedGame, "Toggle player:", shouldTogglePlayer);
+    
     setMetaState(prevState => {
-      // Only update if there are actual changes
+      // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
       const currentGame = prevState.ultimateGames[index];
-      if (
-        JSON.stringify(currentGame.boards) === JSON.stringify(updatedGame.boards) &&
-        JSON.stringify(currentGame.smallWinners) === JSON.stringify(updatedGame.smallWinners) &&
-        currentGame.winner === updatedGame.winner &&
-        currentGame.lastWinPosition === updatedGame.lastWinPosition &&
-        !updatedGame.boardWon // Keine Änderung, wenn kein Brett gewonnen wurde
-      ) {
-        return prevState; // No changes, return previous state
+      
+      // Überprüfe, ob ein Brett gewonnen wurde oder andere relevante Änderungen vorliegen
+      const hasRelevantChanges = 
+        JSON.stringify(currentGame.boards) !== JSON.stringify(updatedGame.boards) ||
+        JSON.stringify(currentGame.smallWinners) !== JSON.stringify(updatedGame.smallWinners) ||
+        currentGame.winner !== updatedGame.winner ||
+        currentGame.lastWinPosition !== updatedGame.lastWinPosition ||
+        updatedGame.boardWon; // Auch aktualisieren, wenn ein Brett gewonnen wurde
+      
+      if (!hasRelevantChanges) {
+        return prevState; // Keine relevanten Änderungen
       }
       
       const newState = { ...prevState };
       newState.ultimateGames = [...newState.ultimateGames];
       
-      // Wenn das Spiel ein Unentschieden hat, markiere es als abgeschlossen
-      if (updatedGame.winner === 'draw') {
-        updatedGame.status = 'completed';
-      }
-      
+      // Aktualisiere das aktuelle Spiel
       newState.ultimateGames[index] = {
         ...newState.ultimateGames[index],
-        ...updatedGame
+        ...updatedGame,
+        // Stelle sicher, dass der Status beibehalten wird, außer bei expliziter Änderung
+        status: updatedGame.status || newState.ultimateGames[index].status
       };
       
+      // Wenn das Spiel ein Unentschieden hat, markiere es als abgeschlossen
+      if (updatedGame.winner === 'draw') {
+        newState.ultimateGames[index].status = 'completed';
+      }
+      
       // WICHTIG: Wenn ein Brett gewonnen wurde, wechsele zum entsprechenden Game
-      if (updatedGame.boardWon) {
+      if (updatedGame.boardWon && updatedGame.wonBoardPosition !== undefined) {
         const nextGameIndex = updatedGame.wonBoardPosition;
+        console.log(`Brett gewonnen in Spiel ${index}, wechsle zu Spiel ${nextGameIndex}`);
         
-        // Deaktiviere das aktuelle Spiel
-        const currentGame = { ...newState.ultimateGames[index] };
-        if (currentGame.status !== 'completed') {
-          currentGame.status = 'not-started';
-        }
-        newState.ultimateGames[index] = currentGame;
+        // Aktualisiere den Status des aktuellen Spiels (deaktiviere es)
+        newState.ultimateGames[index] = {
+          ...newState.ultimateGames[index],
+          status: 'not-started' // Wenn nicht abgeschlossen, setze auf "nicht gestartet"
+        };
         
         // Prüfe, ob das nächste Spiel bereits abgeschlossen ist
         if (newState.ultimateGames[nextGameIndex].status === 'completed') {
-          // Wenn das nächste Spiel bereits beendet ist, kann der Spieler frei wählen
+          console.log(`Spiel ${nextGameIndex} ist bereits beendet, Spieler kann frei wählen`);
           newState.activeUltimateGameIndex = null;
         } else {
           // Aktiviere das nächste Spiel
-          const nextGame = { ...newState.ultimateGames[nextGameIndex] };
-          nextGame.status = 'active';
-          newState.ultimateGames[nextGameIndex] = nextGame;
+          newState.ultimateGames[nextGameIndex] = {
+            ...newState.ultimateGames[nextGameIndex],
+            status: 'active'
+          };
           newState.activeUltimateGameIndex = nextGameIndex;
         }
+        
+        // Setze auch die Ansicht auf das nächste Spiel
+        setTimeout(() => {
+          setViewingGameIndex(nextGameIndex);
+        }, 0);
       }
       
-      // Nach jedem Zug den Spieler wechseln, es sei denn, shouldTogglePlayer ist false
+      // Nach jedem Zug den Spieler wechseln, wenn erforderlich
       if (shouldTogglePlayer) {
         newState.xIsNext = !newState.xIsNext;
       }
       
       return newState;
     });
-    
-    // Wenn ein Brett gewonnen wurde, wechsle die Ansicht zum nächsten Game
-    if (updatedGame.boardWon) {
-      setViewingGameIndex(updatedGame.wonBoardPosition);
-    }
   }, []);
 
   // Toggle help modal
