@@ -41,10 +41,11 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
   // Separate effect to handle initialNextBoardIndex changes
   useEffect(() => {
     if (initialNextBoardIndex !== undefined && initialNextBoardIndex !== nextBoardIndex) {
-      console.log(`Updating nextBoardIndex from props: ${initialNextBoardIndex}`);
+      console.log(`UltimateGame ${gameIndex}: Updating nextBoardIndex from props: ${initialNextBoardIndex}`);
+      console.log(`Aktives Brett in Spiel ${gameIndex} wird auf ${initialNextBoardIndex} gesetzt`);
       setNextBoardIndex(initialNextBoardIndex);
     }
-  }, [initialNextBoardIndex, nextBoardIndex]);
+  }, [initialNextBoardIndex, nextBoardIndex, gameIndex]);
 
   // Keine separate Effect für nextBoardIndex nötig, da es bereits im State ist
 
@@ -132,8 +133,10 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
         }, 0);
       } else {
         // Nur ein kleines Brett gewonnen - WICHTIG: Markiere als boardWon
-        // KORREKTUR: Die Position des gewonnenen Bretts (boardIndex) bestimmt das nächste Spiel, nicht squareIndex
-        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen, nächstes Spiel sollte ${boardIndex} sein`);
+        // Die Position des gewonnenen Bretts (boardIndex) bestimmt das nächste Spiel
+        // Die Position des letzten Zuges (squareIndex) bestimmt das aktive Brett im nächsten Spiel
+        console.log(`Brett ${boardIndex} in Spiel ${gameIndex} gewonnen durch Zug an Position ${squareIndex}`);
+        console.log(`Nächstes Spiel sollte ${boardIndex} sein, darin aktives Brett: ${squareIndex}`);
         
         updateGameState({
           boards: newBoards,
@@ -141,8 +144,9 @@ const UltimateGame = ({ gameIndex, gameData, xIsNext, isActive, onGameWin, updat
           winner: null, // Kein Gesamtgewinner
           lastWinPosition: null,
           boardWon: true, // Markiere, dass ein Brett gewonnen wurde
-          wonBoardIndex: boardIndex, // Index des gewonnenen Bretts
-          wonBoardPosition: boardIndex, // KORREKTUR: Die Position des gewonnenen Bretts bestimmt das nächste Spiel
+          wonBoardIndex: boardIndex, // Index des gewonnenen Bretts - bestimmt das nächste Game
+          wonBoardPosition: boardIndex, // Position für das nächste Spiel
+          lastMovePosition: squareIndex, // Position des letzten Zuges - bestimmt das aktive Brett im nächsten Spiel
           wonBy: smallWinner // Füge den Gewinner hinzu für bessere Logs
         });
         

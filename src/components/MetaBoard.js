@@ -196,13 +196,16 @@ const MetaBoard = () => {
       
       // WICHTIG: Wenn ein Brett gewonnen wurde, wechsele zum entsprechenden Game
       if (updatedGame.boardWon && updatedGame.wonBoardIndex !== undefined) {
-        // KORREKTUR: Verwende wonBoardIndex (die Position des gewonnenen Bretts) für den Spielwechsel
+        // Verwende wonBoardIndex (die Position des gewonnenen Bretts) für den Spielwechsel
         const nextGameIndex = updatedGame.wonBoardIndex;
+        // Verwende lastMovePosition für das aktive Brett im nächsten Spiel
+        const nextActiveBoard = updatedGame.lastMovePosition;
         
         // DEBUG: Protokolliere das Ziel-Spiel und den Grund für den Wechsel
         console.log(`SPIELWECHSEL: Brett ${updatedGame.wonBoardIndex} in Spiel ${index} gewonnen -> 
           Gewonnenes Brett an Position ${updatedGame.wonBoardIndex} -> 
-          Wechsle zu Spiel ${nextGameIndex}`);
+          Wechsle zu Spiel ${nextGameIndex} -> 
+          Aktives Brett im neuen Spiel: ${nextActiveBoard}`);
         
         // WICHTIG: Das aktuelle Spiel NICHT auf 'not-started' setzen!
         // Es sollte aktiv bleiben, nur nicht das aktuell ausgewählte Spiel sein
@@ -216,10 +219,12 @@ const MetaBoard = () => {
           console.log(`Spiel ${nextGameIndex} ist bereits beendet, Spieler kann frei wählen`);
           newState.activeUltimateGameIndex = null;
         } else {
-          // Setze nur das neue Spiel auf "active"
+          // Setze das neue Spiel auf "active" und setze das aktive Brett basierend auf dem letzten Zug
           newState.ultimateGames[nextGameIndex] = {
             ...newState.ultimateGames[nextGameIndex],
-            status: 'active'
+            status: 'active',
+            // Setze das aktive Brett im neuen Spiel basierend auf dem letzten Zug
+            nextBoardIndex: updatedGame.lastMovePosition
           };
           newState.activeUltimateGameIndex = nextGameIndex;
         }
